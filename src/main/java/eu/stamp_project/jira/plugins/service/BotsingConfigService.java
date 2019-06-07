@@ -38,8 +38,6 @@ import eu.stamp_project.jira.plugins.config.BotsingConfig;
 @Scanned
 public class BotsingConfigService {
 
-	// vedi https://bitbucket.org/dmitry_apanasevich/jira-jigit-plugin/src/master/src/main/java/jigit/resource/JigitAdminResource.java
-
 	private static final Logger log = LoggerFactory.getLogger(BotsingConfigService.class);
 
 	@ComponentImport
@@ -68,7 +66,7 @@ public class BotsingConfigService {
 			@FormParam("search_budget") @DefaultValue("") Integer searchBudget,
 			@FormParam("global_timeout") @DefaultValue("") Integer globalTimeout,
 			@FormParam("population") @DefaultValue("") Integer population,
-			@FormParam("packageFilter") @DefaultValue("") String packageFilter) {
+			@FormParam("package_filter") @DefaultValue("") String packageFilter) {
 
 		// check admin authorization
         final Response response = checkAdminPermissions(ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser());
@@ -102,7 +100,7 @@ public class BotsingConfigService {
 			@FormParam("search_budget") @DefaultValue("") Integer searchBudget,
 			@FormParam("global_timeout") @DefaultValue("") Integer globalTimeout,
 			@FormParam("population") @DefaultValue("") Integer population,
-			@FormParam("packageFilter") @DefaultValue("") String packageFilter) {
+			@FormParam("package_filter") @DefaultValue("") String packageFilter) {
 
 		// check admin authorization
         final Response response = checkAdminPermissions(ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser());
@@ -230,13 +228,15 @@ public class BotsingConfigService {
     }
 
     private Response checkAdminPermissions(ApplicationUser user) {
-        if (user == null) {
+
+    	if (user == null) {
             return Response.ok("User is not logged in").status(Response.Status.UNAUTHORIZED).build();
         }
 
         if (!ComponentAccessor.getGlobalPermissionManager().hasPermission(GlobalPermissionKey.SYSTEM_ADMIN, user)) {
             return Response.ok("Invalid permissions for " + user.getName()).status(Response.Status.FORBIDDEN).build();
         }
+
         return null;
     }
 

@@ -1,7 +1,7 @@
 package eu.stamp_project.jira.plugins.config;
 
 public final class BotsingConfig {
-// vedere https://bitbucket.org/dmitry_apanasevich/jira-jigit-plugin/src/master/src/main/java/jigit/settings/JigitRepo.java
+
 	public static final String BOTSING_CONFIG_KEY = "BotsingConfig";
 
 	public static final String PROJECT_KEY_SUFFIX = ".project_key";

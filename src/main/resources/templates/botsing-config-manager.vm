@@ -1,4 +1,4 @@
-$webResourceManager.requireResource("eu.stamp_project.botsing-jira:botsing-jira-resources")
+$webResourceManager.requireResource("eu.stamp_project.botsing-jira-plugin:botsing-jira-resources")
 
 <html>
 <head>

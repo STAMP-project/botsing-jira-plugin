@@ -22,8 +22,6 @@ import eu.stamp_project.jira.plugins.config.BotsingConfig;
 
 public class BotsingConfigAction extends JiraWebActionSupport implements AuthorizationSupport, HttpServletVariables {
 
-	// vedi https://bitbucket.org/dmitry_apanasevich/jira-jigit-plugin/src/master/src/main/java/jigit/webworks/JigitAdminAction.java
-
 	private static final long serialVersionUID = 1L;
 
     private final PluginSettings pluginSettings;

@@ -18,7 +18,6 @@ public class ComponentImporter {
 	public ComponentImporter(
 			@ComponentImport PluginAccessor pluginAccessor,
 			@ComponentImport ApplicationProperties applicationProperties
-			//@ComponentImport MessageUserProcessor messageUserProcessor
 			) {
 		// no need to actually do anything with it...
 	}
