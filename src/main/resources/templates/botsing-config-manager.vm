@@ -1,0 +1,189 @@
+$webResourceManager.requireResource("eu.stamp_project.botsing-jira:botsing-jira-resources")
+
+<html>
+<head>
+    <meta name="decorator" content="atl.admin"/>
+    <title>$i18n.getText("botsing.config.page.title")</title>
+</head>
+<body>
+    #if($action.hasAdminPermission())
+    <h1>$i18n.getText("botsing.config.page.title")</h1>
+    <p>
+
+    <div id="page-message-container"></div>
+
+    <table width="100%" class="config-list" cellpadding="0" cellspacing="0">
+        <thead>
+        <tr>
+            <th width="30%">
+                $i18n.getText("botsing.config.project_key.label")
+            </th>
+            <th>
+                $i18n.getText("botsing.config.artifact_gav.label")
+            </th>
+            <th>
+                $i18n.getText("botsing.config.table.columns.properties")
+            </th>
+            <th width="10%">
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+            #foreach ($botsingConfig in $action.getBotsingConfigMap())
+                #set($projectKey = $botsingConfig.getProjectKey())
+            <tr>
+                <td data-val="$botsingConfig.getProjectKey()" data-name="project_key">
+                    $botsingConfig.getProjectKey()<br/><br/>
+				 	#if($botsingConfig.getEnabled())
+						<span class="aui-lozenge aui-lozenge-success">$i18n.getText('jigit.settings.table.columns.enabled')</span> 
+					#else
+						<span class="aui-lozenge">$i18n.getText('jigit.settings.table.columns.disabled')</span>
+					#end
+				</td>
+                <td data-val="$botsingConfig.getArtifactId()" data-name="artifact_id">
+                    <ul>
+                    #if($botsingConfig.getGroupId())<li>$i18n.getText('botsing.config.group_id.label'): $botsingConfig.getGroupId()</li>#end
+                    #if($botsingConfig.getArtifactId())<li>$i18n.getText('botsing.config.artifact_id.label'): $botsingConfig.getArtifactId()</li>#end
+                    #if($botsingConfig.getVersion())<li>$i18n.getText('botsing.config.version.label'): $botsingConfig.getVersion()</li>#end
+                    </ul>
+                </td>
+                <td data-val="$botsingConfig.getArtifactId()" data-name="artifact_id">
+                    <ul>
+                	#if($botsingConfig.getSearchBudget())<li>$i18n.getText('botsing.config.search_budget.label'): $botsingConfig.getSearchBudget()</li>#end
+					#if($botsingConfig.getGlobalTimeout())<li>$i18n.getText('botsing.config.global_timeout.label'): $botsingConfig.getGlobalTimeout()</li>#end
+					#if($botsingConfig.getPopulation())<li>$i18n.getText('botsing.config.population.label'): $botsingConfig.getPopulation()</li>#end
+					#if($botsingConfig.getPackageFilter())<li>$i18n.getText('botsing.config.package_filter.label'): $botsingConfig.getPackageFilter()</li>#end
+					</ul>
+				</td>
+                <td>
+                    <a href="#config-actions-$projectKey" aria-owns="config-actions-$projectKey" aria-haspopup="true"
+                       class="aui-button aui-dropdown2-trigger aui-style-default">
+                        $i18n.getText('botsing.buttons.actions')
+                    </a>
+
+                    <div id="config-actions-$projectKey" class="aui-dropdown2 aui-style-default">
+                        <ul class="aui-list-truncate">
+                            <li><a href="#" class="edit-botsing-config-button">$i18n.getText('botsing.buttons.edit')</a></li>
+                            <li>
+                                <a href="#" class="activity-botsing-config-button" data-form="activity-botsing-config">
+                                    #if($botsingConfig.getEnabled())
+                                    	$i18n.getText('botsing.buttons.disable')
+                                    #else
+                                        $i18n.getText('botsing.buttons.enable')
+                                    #end
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="remove-botsing-config-button" data-form="remove-botsing-config">
+                                    $i18n.getText('botsing.buttons.delete')
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <form class="activity-botsing-config" method="post" action="$req.contextPath/rest/botsing-config/1.0/config/$projectKey/activity">
+                        <input type="hidden" name="enabled" #if($botsingConfig.getEnabled()) value="false" #else value="true" #end>
+                    </form>
+
+                    <form class="remove-botsing-config" method="post"
+                          onsubmit="return confirm('$i18n.getText("botsing.confirm.delete.config")');"
+                          action="$req.contextPath/rest/botsing-config/1.0/config/$projectKey/remove">
+                    </form>
+
+                </td>
+            </tr>
+            #end
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>
+                <input type="button" id="add-botsing-config-button" value="$i18n.getText('botsing.buttons.add')"
+                       class="aui-button"/>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div id="add-botsing-config-container" style="display: none;" class="aui-panel">
+        <div class="message-container"></div>
+        
+        <form id="add-botsing-config-form" method="post" class="aui" action="$req.contextPath/rest/botsing-config/1.0/config/add">
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.project_key.label")</label>
+                <input type="text" name="project_key" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.group_id.label")</label>
+                <input type="text" name="group_id" class="text form-data"/>
+            </div>
+ 			<div class="field-group">
+                <label>$i18n.getText("botsing.config.artifact_id.label")</label>
+                <input type="text" name="artifact_id" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.version.label")</label>
+                <input type="text" name="version" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.search_budget.label")</label>
+                <input type="text" name="search_budget" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.global_timeout.label")</label>
+                <input type="text" name="global_timeout" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.population.label")</label>
+                <input type="text" name="population" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.package_filter.label")</label>
+                <input type="text" name="package_filter" class="text form-data"/>
+            </div>
+        </form>
+    </div>
+    
+    <div id="edit-botsing-config-container" style="display: none;" class="aui-panel">
+        <div class="message-container"></div>
+        
+        <form id="edit-botsing-config-form" method="post" class="aui" action="$req.contextPath/rest/botsing-config/1.0/config/edit">
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.project_key.label")</label>
+                <input type="text" name="project_key" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.group_id.label")</label>
+                <input type="text" name="group_id" class="text form-data"/>
+            </div>
+ 			<div class="field-group">
+                <label>$i18n.getText("botsing.config.artifact_id.label")</label>
+                <input type="text" name="artifact_id" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.version.label")</label>
+                <input type="text" name="version" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.search_budget.label")</label>
+                <input type="text" name="search_budget" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.global_timeout.label")</label>
+                <input type="text" name="global_timeout" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.population.label")</label>
+                <input type="text" name="population" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.package_filter.label")</label>
+                <input type="text" name="package_filter" class="text form-data"/>
+            </div>
+        </form>
+    </div>
+    
+	#else
+    <div class="errorArea">$i18n.getText("botsing.error.permissions.invalid")</div>
+    #end
+</body>
+</html>

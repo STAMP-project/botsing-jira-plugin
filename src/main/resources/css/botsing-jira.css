@@ -1,0 +1,19 @@
+.config-list {
+    width: 100%;
+}
+
+.config-list th {
+    background-color: #f0f0f0;
+    padding: 5px 0 5px 3px;
+}
+
+.config-list td {
+    padding: 5px 0 5px 3px;
+    vertical-align: top;
+    text-align: center;
+    border-top: 1px solid #f0f0f0;
+}
+
+.config-list td:last-child {
+    text-align: right;
+}

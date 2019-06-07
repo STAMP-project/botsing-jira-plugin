@@ -1,0 +1,43 @@
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}" />
+        <param name="plugin-icon">images/STAMP_Logo_RGB_box_16x16.png</param>
+        <param name="plugin-logo">images/STAMP_Logo_RGB_box_72x72.png</param>
+    </plugin-info>
+
+    <!-- i18n resource -->
+    <resource type="i18n" name="i18n" location="i18n/botsing-jira"/>
+    
+    <!-- static web resources -->
+    <web-resource key="botsing-jira-resources" name="botsing-jira Web Resources">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        
+        <resource type="download" name="botsing-jira.css" location="/css/botsing-jira.css"/>
+        <resource type="download" name="botsing-jira.js" location="/js/botsing-jira.js"/>
+        <resource type="download" name="images/" location="/images"/>
+
+        <context>botsing-jira</context>
+    </web-resource>
+    
+    <!-- REST Service -->
+    <rest key="botsing-rest-service" path="/botsing-config" version="1.0">
+        <description>Provides REST resources for the Botsing config UI.</description>
+    </rest>
+    
+    <web-item key="botsing-config-menu-item" name="Botsing plugin configuration" section="system.admin/globalsettings">
+        <label key="botsing.config.page.title"/>
+        <link linkId="botsing-config-action">/secure/BotsingConfigAction.jspa</link>
+    </web-item>
+
+    <webwork1 key="botsing-config-page" name="Botsing config page" class="java.lang.Object">
+        <actions>
+            <action name="eu.stamp_project.jira.plugins.webworks.BotsingConfigAction" alias="BotsingConfigAction">
+                <view name="input">/templates/botsing-config-manager.vm</view>
+                <view name="success">/templates/botsing-config-manager.vm</view>
+            </action>
+        </actions>
+    </webwork1>
+      
+</atlassian-plugin>
