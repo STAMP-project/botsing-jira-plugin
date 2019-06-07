@@ -1,8 +1,10 @@
 package eu.stamp_project.jira.plugins.listener;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.ofbiz.core.entity.GenericValue;
 import org.slf4j.Logger;
@@ -19,7 +21,14 @@ import com.atlassian.jira.issue.Issue;
 import com.atlassian.jira.issue.attachment.Attachment;
 import com.atlassian.jira.issue.label.Label;
 import com.atlassian.jira.issue.label.LabelManager;
+import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import com.atlassian.plugin.spring.scanner.annotation.imports.JiraImport;
+import com.atlassian.sal.api.pluginsettings.PluginSettings;
+import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import eu.stamp_project.jira.plugins.config.BotsingConfig;
 
 @Component
 public class BotsingAttachmentListener implements InitializingBean, DisposableBean {
@@ -36,10 +45,20 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 	@JiraImport
 	private final LabelManager labelManager;
 
+    private final PluginSettings pluginSettings;
+
+    private final Gson gson = new Gson();
+
+	@ComponentImport
+	PluginSettingsFactory pluginSettingsFactory;
+
 	@Autowired
-	public BotsingAttachmentListener(final EventPublisher eventPublisher, final LabelManager labelManager) {
+	public BotsingAttachmentListener(final EventPublisher eventPublisher, final LabelManager labelManager,
+			final PluginSettingsFactory pluginSettingsFactory) {
+
 		this.eventPublisher = eventPublisher;
 		this.labelManager = labelManager;
+		pluginSettings = pluginSettingsFactory.createSettingsForKey(BotsingConfig.class.getName());
 	}
 
 	/**
@@ -67,20 +86,27 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 		Long eventTypeId = issueEvent.getEventTypeId();
 		Issue issue = issueEvent.getIssue();
 
+		// check labels
 		if (hasLabel(LABEL_STAMP, issue) && !hasLabel(LABEL_REPRODUCTION_DOING, issue)
 				&& !hasLabel(LABEL_REPRODUCTION_DONE, issue)) {
 
 			// TODO only for testing purpouse, remove before releasing the plugin
 			System.out.println(">>> eventTypeId: " + eventTypeId);
 
+			// check attachment
 			Collection<Attachment> attachments = issue.getAttachments();
-			if (attachments != null && attachments.size() > 0) {
+			if (attachments != null && attachments.size() == 1) {
 
-				labelManager.addLabel(issueEvent.getUser(), issue.getId(), LABEL_REPRODUCTION_DOING, false);
+				// check botsing configuration
+				final BotsingConfig botsingConfig = getBotsingConfig(issue.getProjectObject().getKey());
+				if (botsingConfig != null && botsingConfig.getEnabled()) {
 
-				// TODO read botsing configuration
-				// TODO check if issue has to be processed
-				// TODO launch Botsing in a separate process
+					labelManager.addLabel(issueEvent.getUser(), issue.getId(), LABEL_REPRODUCTION_DOING, false);
+
+					System.out.println(botsingConfig);
+
+					// TODO launch Botsing in a separate process
+				}
 
 			}
 		}
@@ -95,6 +121,14 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 
 		return false;
 	}
+
+	public BotsingConfig getBotsingConfig(String projectKey) {
+		Type emptyMapType = new TypeToken<Map<String, BotsingConfig>>() {}.getType();
+
+        final Map<String, BotsingConfig> configs = gson.fromJson((String)pluginSettings.get(BotsingConfig.BOTSING_CONFIG_KEY), emptyMapType);
+
+        return configs.get(projectKey);
+    }
 
 	private List<String> getAttachmentsInChangeSet(IssueEvent issueEvent) {
 		List<String> attachmentIds = new ArrayList<String>();

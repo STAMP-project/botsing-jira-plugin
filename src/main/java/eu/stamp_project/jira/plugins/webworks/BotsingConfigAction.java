@@ -19,39 +19,40 @@ import com.google.gson.reflect.TypeToken;
 
 import eu.stamp_project.jira.plugins.config.BotsingConfig;
 
-
 public class BotsingConfigAction extends JiraWebActionSupport implements AuthorizationSupport, HttpServletVariables {
 
 	private static final long serialVersionUID = 1L;
 
-    private final PluginSettings pluginSettings;
+	private final PluginSettings pluginSettings;
 
-    private final Gson gson = new Gson();
+	private final Gson gson = new Gson();
 
-	 @ComponentImport
-	 PluginSettingsFactory pluginSettingsFactory;
+	@ComponentImport
+	PluginSettingsFactory pluginSettingsFactory;
 
 	@Inject
-    public BotsingConfigAction(PluginSettingsFactory pluginSettingsFactory) {
+	public BotsingConfigAction(PluginSettingsFactory pluginSettingsFactory) {
 
-    	pluginSettings = pluginSettingsFactory.createSettingsForKey(BotsingConfig.class.getName());
+		pluginSettings = pluginSettingsFactory.createSettingsForKey(BotsingConfig.class.getName());
 
-    }
+	}
 
-    public Map<String, BotsingConfig> getBotsingConfigMap() {
-        return Collections.unmodifiableMap(new TreeMap<>(getBotsingConfigs()));
-    }
+	public Map<String, BotsingConfig> getBotsingConfigMap() {
+		return Collections.unmodifiableMap(new TreeMap<>(getBotsingConfigs()));
+	}
 
-    public boolean hasAdminPermission() {
-        return isSystemAdministrator();
-    }
+	public boolean hasAdminPermission() {
+		return isSystemAdministrator();
+	}
 
-    private Map<String, BotsingConfig> getBotsingConfigs() {
-    	Type emptyMapType = new TypeToken<Map<String, BotsingConfig>>() {}.getType();
+	private Map<String, BotsingConfig> getBotsingConfigs() {
+		Type emptyMapType = new TypeToken<Map<String, BotsingConfig>>() {
+		}.getType();
 
-        final Map<String, BotsingConfig> configs = gson.fromJson((String)pluginSettings.get(BotsingConfig.BOTSING_CONFIG_KEY), emptyMapType);
+		final Map<String, BotsingConfig> configs = gson
+				.fromJson((String) pluginSettings.get(BotsingConfig.BOTSING_CONFIG_KEY), emptyMapType);
 
-        return configs == null ? new HashMap<String, BotsingConfig>() : configs;
-    }
+		return configs == null ? new HashMap<String, BotsingConfig>() : configs;
+	}
 
 }
