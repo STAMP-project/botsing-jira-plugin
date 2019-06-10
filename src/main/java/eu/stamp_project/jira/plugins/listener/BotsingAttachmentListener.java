@@ -35,9 +35,9 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 	private static final Logger log = LoggerFactory.getLogger(BotsingAttachmentListener.class);
 
 	// label marker
-	private static final String LABEL_STAMP = "STAMP";
-	private static final String LABEL_REPRODUCTION_DOING = "doing-reproduction";
-	private static final String LABEL_REPRODUCTION_DONE = "reproduction-done";
+	public static final String LABEL_STAMP = "STAMP";
+	public static final String LABEL_REPRODUCTION_DOING = "doing-reproduction";
+	public static final String LABEL_REPRODUCTION_DONE = "reproduction-done";
 
 	@JiraImport
 	private final EventPublisher eventPublisher;
@@ -106,6 +106,9 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 					System.out.println(botsingConfig);
 
 					// TODO launch Botsing in a separate process
+
+					// call Botsting-server service
+
 				}
 
 			}

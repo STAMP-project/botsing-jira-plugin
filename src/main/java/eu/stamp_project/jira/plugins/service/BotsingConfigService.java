@@ -22,17 +22,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.atlassian.jira.component.ComponentAccessor;
+import com.atlassian.jira.issue.MutableIssue;
+import com.atlassian.jira.issue.label.LabelManager;
 import com.atlassian.jira.permission.GlobalPermissionKey;
 import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.util.I18nHelper;
 import com.atlassian.plugin.spring.scanner.annotation.component.Scanned;
 import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
+import com.atlassian.plugin.spring.scanner.annotation.imports.JiraImport;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import eu.stamp_project.jira.plugins.config.BotsingConfig;
+import eu.stamp_project.jira.plugins.utils.JiraUtil;
 
 @Path("/")
 @Scanned
@@ -43,15 +47,19 @@ public class BotsingConfigService {
 	@ComponentImport
 	PluginSettingsFactory pluginSettingsFactory;
 
+	@JiraImport
+	private final LabelManager labelManager;
+
     @Context
     private HttpServletRequest request;
 
 	private final I18nHelper i18n;
 
 	@Inject
-	public BotsingConfigService(PluginSettingsFactory pluginSettingsFactory) {
+	public BotsingConfigService(PluginSettingsFactory pluginSettingsFactory, final LabelManager labelManager) {
 
 		this.pluginSettingsFactory = pluginSettingsFactory;
+		this.labelManager = labelManager;
 		pluginSettings = this.pluginSettingsFactory.createSettingsForKey(BotsingConfig.class.getName());
         this.i18n = ComponentAccessor.getJiraAuthenticationContext().getI18nHelper();
 	}
@@ -182,6 +190,54 @@ public class BotsingConfigService {
         log.info("Removed Botsing configuration for project '" + projectKey + "'");
         return getReferrerResponse(request);
     }
+
+    // /rest/botsing-config/1.0/reproduction/ABC-123/add"
+	@POST
+    @Path("/reproduction/{issue:.+}/add")
+    @Produces(MediaType.TEXT_HTML)
+    public Response createAttachment(@PathParam("issue") @DefaultValue("") String issueKey) {
+
+		// parameters to get from the request:
+		// issuekey
+		// test file
+		// interface test file
+
+		// check issueKey
+		if (issueKey.isEmpty()) {
+            return Response.ok(i18n.getText("config.error.params.empty")).status(Response.Status.BAD_REQUEST).build();
+        }
+
+		// check existing issue
+		MutableIssue issue = ComponentAccessor.getIssueManager().getIssueObject(issueKey);
+        if (issue == null) {
+            return Response.ok(i18n.getText("botsing.error.params.invalid")).status(Response.Status.BAD_REQUEST).build();
+        }
+
+        // get existing configuration
+        final BotsingConfig existingBotsingConfig = getBotsingConfig(JiraUtil.getProjectKeyFromIssueKey(issueKey));
+        if (existingBotsingConfig == null) {
+            return Response.ok(i18n.getText("botsing.error.params.invalid")).status(Response.Status.BAD_REQUEST).build();
+        }
+
+        // get user to create comment and attachments
+        ApplicationUser user = ComponentAccessor.getUserManager().getUserByKey("stamp");
+
+		// create comment
+        // TODO i18n for this comment
+        ComponentAccessor.getCommentManager().create(issue, user, "Reproduction test had been generated", true);
+
+		// add test as attachments
+        //CreateAttachmentParamsBean capb = new CreateAttachmentParamsBean(file, filename, contentType, author, issue, zip, thumbnailable, attachmentProperties, createdTime, copySourceFile);
+        //ComponentAccessor.getAttachmentManager().createAttachment(createAttachmentParamsBean)Attachment(file, filename, contentType, author, issue);
+
+        // add done label
+        // TODO make user configurable!
+
+        labelManager.setLabels(user, issue.getId(), JiraUtil.getDoneLabelSet(labelManager.getLabels(issue.getId())), false, true);
+
+		return Response.ok().build();
+
+	}
 
     private static Response getReferrerResponse(HttpServletRequest request) {
         try {

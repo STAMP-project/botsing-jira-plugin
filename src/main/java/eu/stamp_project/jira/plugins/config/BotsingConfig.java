@@ -1,6 +1,6 @@
 package eu.stamp_project.jira.plugins.config;
 
-public final class BotsingConfig {
+public class BotsingConfig {
 
 	public static final String BOTSING_CONFIG_KEY = "BotsingConfig";
 

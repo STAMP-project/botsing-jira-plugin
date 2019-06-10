@@ -1,4 +1,4 @@
-package eu.stamp_project.jira.plugins.util;
+package eu.stamp_project.jira.plugins.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
