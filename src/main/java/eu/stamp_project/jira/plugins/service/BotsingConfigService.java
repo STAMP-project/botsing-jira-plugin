@@ -64,6 +64,18 @@ public class BotsingConfigService {
         this.i18n = ComponentAccessor.getJiraAuthenticationContext().getI18nHelper();
 	}
 
+	/**
+	 * Service to add a new Botsing Jira project configuration
+	 * @param projectKey
+	 * @param groupId
+	 * @param artifactId
+	 * @param version
+	 * @param searchBudget
+	 * @param globalTimeout
+	 * @param population
+	 * @param packageFilter
+	 * @return
+	 */
 	@POST
 	@Path("config/add")
 	@Produces(MediaType.TEXT_HTML)
@@ -98,6 +110,18 @@ public class BotsingConfigService {
 		return Response.ok().build();
 	}
 
+	/**
+	 * Service to modify an existing Botsing Jira project configuration
+	 * @param projectKey
+	 * @param groupId
+	 * @param artifactId
+	 * @param version
+	 * @param searchBudget
+	 * @param globalTimeout
+	 * @param population
+	 * @param packageFilter
+	 * @return
+	 */
 	@POST
     @Path("config/edit")
     @Produces(MediaType.TEXT_HTML)
@@ -137,6 +161,12 @@ public class BotsingConfigService {
         return Response.ok().build();
     }
 
+	/**
+	 * Service to enable or disable an existing Botsing Jira project configuration
+	 * @param projectKey
+	 * @param enabled
+	 * @return
+	 */
 	@POST
     @Path("/config/{config:.+}/activity")
     @Produces(MediaType.TEXT_HTML)
@@ -170,6 +200,11 @@ public class BotsingConfigService {
         return getReferrerResponse(request);
     }
 
+	/**
+	 * Service to remove an existing Botsing Jira project configuration
+	 * @param projectKey
+	 * @return
+	 */
     @POST
     @Path("/config/{config:.+}/remove")
     @Produces(MediaType.TEXT_HTML)
@@ -192,6 +227,11 @@ public class BotsingConfigService {
     }
 
     // /rest/botsing-config/1.0/reproduction/ABC-123/add"
+    /**
+     * Service to add Botsing reproduction test to the issue
+     * @param issueKey
+     * @return
+     */
 	@POST
     @Path("/reproduction/{issue:.+}/add")
     @Produces(MediaType.TEXT_HTML)

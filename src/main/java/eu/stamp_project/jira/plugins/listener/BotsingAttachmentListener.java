@@ -109,6 +109,8 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 
 					// call Botsting-server service
 
+				} else {
+					log.warn("Received Botsing event, but no configuration found for project '"+issue.getProjectObject().getKey()+"' in botsing-jira-plugin.");
 				}
 
 			}

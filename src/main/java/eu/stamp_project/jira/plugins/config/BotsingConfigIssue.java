@@ -2,6 +2,11 @@ package eu.stamp_project.jira.plugins.config;
 
 import java.util.List;
 
+/**
+ * Configuration parameters to call Botsing server
+ * @author luca
+ *
+ */
 public final class BotsingConfigIssue extends BotsingConfig {
 
 	private String issueKey;

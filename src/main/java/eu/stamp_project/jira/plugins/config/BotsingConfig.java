@@ -1,5 +1,10 @@
 package eu.stamp_project.jira.plugins.config;
 
+/**
+ * Botsing configuration parameters for each Jira project.
+ * @author luca
+ *
+ */
 public class BotsingConfig {
 
 	public static final String BOTSING_CONFIG_KEY = "BotsingConfig";
