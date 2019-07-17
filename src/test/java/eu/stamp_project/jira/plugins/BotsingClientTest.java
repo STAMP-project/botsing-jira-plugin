@@ -5,7 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import eu.stamp_project.jira.plugins.BotsingClient;
-import eu.stamp_project.jira.plugins.config.BotsingConfigIssue;
+import eu.stamp_project.jira.plugins.config.BotsingIssueConfig;
 
 public class BotsingClientTest {
 
@@ -37,7 +37,7 @@ public class BotsingClientTest {
     public void testPost() throws Exception {
 
     	// payload
-    	BotsingConfigIssue configIssue = new BotsingConfigIssue("ABC", "botsing-jira-plugin");
+    	BotsingIssueConfig configIssue = new BotsingIssueConfig("ABC", "botsing-jira-plugin");
     	configIssue.setIssueKey("ABC-123");
 
     	// Call github service on botsing-server on OW2 server

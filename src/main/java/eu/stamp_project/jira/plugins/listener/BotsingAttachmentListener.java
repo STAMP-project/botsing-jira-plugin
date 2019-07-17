@@ -1,6 +1,8 @@
 package eu.stamp_project.jira.plugins.listener;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -28,7 +30,11 @@ import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import eu.stamp_project.jira.plugins.config.BotsingConfig;
+import eu.stamp_project.jira.plugins.BotsingClient;
+import eu.stamp_project.jira.plugins.config.BotsingIssueConfig;
+import eu.stamp_project.jira.plugins.config.BotsingProjectConfig;
+import eu.stamp_project.jira.plugins.config.BotsingServerConfig;
+import eu.stamp_project.jira.plugins.utils.JiraUtil;
 
 @Component
 public class BotsingAttachmentListener implements InitializingBean, DisposableBean {
@@ -58,7 +64,7 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 
 		this.eventPublisher = eventPublisher;
 		this.labelManager = labelManager;
-		pluginSettings = pluginSettingsFactory.createSettingsForKey(BotsingConfig.class.getName());
+		pluginSettings = pluginSettingsFactory.createSettingsForKey(BotsingProjectConfig.class.getName());
 	}
 
 	/**
@@ -90,29 +96,30 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 		if (hasLabel(LABEL_STAMP, issue) && !hasLabel(LABEL_REPRODUCTION_DOING, issue)
 				&& !hasLabel(LABEL_REPRODUCTION_DONE, issue)) {
 
-			// TODO only for testing purpouse, remove before releasing the plugin
+			// TODO only for testing purpose, remove before releasing the plugin
 			System.out.println(">>> eventTypeId: " + eventTypeId);
 
 			// check attachment
-			Collection<Attachment> attachments = issue.getAttachments();
-			if (attachments != null && attachments.size() == 1) {
+			String attachment = getAttachmentAsString(issue);
+			if (attachment != null) {
 
 				// check botsing configuration
-				final BotsingConfig botsingConfig = getBotsingConfig(issue.getProjectObject().getKey());
-				if (botsingConfig != null && botsingConfig.getEnabled()) {
+				final BotsingProjectConfig botsingProjectConfig = getBotsingProjectConfig(issue.getProjectObject().getKey());
+				if (botsingProjectConfig != null && botsingProjectConfig.getEnabled()) {
 
 					labelManager.addLabel(issueEvent.getUser(), issue.getId(), LABEL_REPRODUCTION_DOING, false);
 
-					System.out.println(botsingConfig);
+					System.out.println(botsingProjectConfig);
+					BotsingClient botsingClient = new BotsingClient(getBotsingServerConfig().getBaseUrl());
 
-					// TODO launch Botsing in a separate process
+					BotsingIssueConfig issueConfig = new BotsingIssueConfig(botsingProjectConfig, issue.getKey(), attachment);
 
 					// call Botsting-server service
+					botsingClient.postBotsingIssueEventCall(issueConfig);
 
 				} else {
 					log.warn("Received Botsing event, but no configuration found for project '"+issue.getProjectObject().getKey()+"' in botsing-jira-plugin.");
 				}
-
 			}
 		}
 	}
@@ -127,13 +134,47 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 		return false;
 	}
 
-	public BotsingConfig getBotsingConfig(String projectKey) {
-		Type emptyMapType = new TypeToken<Map<String, BotsingConfig>>() {}.getType();
+	public BotsingServerConfig getBotsingServerConfig() {
+		Type emptyMapType = new TypeToken<BotsingServerConfig>() {}.getType();
 
-        final Map<String, BotsingConfig> configs = gson.fromJson((String)pluginSettings.get(BotsingConfig.BOTSING_CONFIG_KEY), emptyMapType);
+		final BotsingServerConfig config = gson
+				.fromJson((String) pluginSettings.get(BotsingServerConfig.BOTSING_SERVER_CONFIG_KEY), emptyMapType);
 
-        return configs.get(projectKey);
-    }
+		return config;
+	}
+
+	public BotsingProjectConfig getBotsingProjectConfig(String projectKey) {
+		Type emptyMapType = new TypeToken<Map<String, BotsingProjectConfig>>() {}.getType();
+
+		final Map<String, BotsingProjectConfig> configs = gson
+				.fromJson((String) pluginSettings.get(BotsingProjectConfig.BOTSING_PROJECT_CONFIG_KEY), emptyMapType);
+
+		return configs.get(projectKey);
+	}
+
+	private String getAttachmentAsString(Issue issue) {
+		String result = null;
+
+		// check attachment
+		Collection<Attachment> attachments = issue.getAttachments();
+		if (attachments == null) {
+			log.warn("No attachment found in issue '"+issue.getKey()+"'");
+			return null;
+
+		} else if (attachments.size() > 1) {
+			log.warn("Multiple attachments found in issue '"+issue.getKey()+"', cannot call Botsing");
+			return null;
+		}
+
+		Attachment a = attachments.iterator().next();
+		try {
+			result = JiraUtil.readFile(a.getFilename(), Charset.defaultCharset());
+		} catch (IOException e) {
+			log.error("Cannot read attachment '" + a.getFilename() + "'");
+		}
+
+		return result;
+	}
 
 	private List<String> getAttachmentsInChangeSet(IssueEvent issueEvent) {
 		List<String> attachmentIds = new ArrayList<String>();

@@ -5,9 +5,9 @@ package eu.stamp_project.jira.plugins.config;
  * @author luca
  *
  */
-public class BotsingConfig {
+public class BotsingProjectConfig {
 
-	public static final String BOTSING_CONFIG_KEY = "BotsingConfig";
+	public static final String BOTSING_PROJECT_CONFIG_KEY = "BotsingProjectConfig";
 
 	public static final String PROJECT_KEY_SUFFIX = ".project_key";
 	public static final String GROUP_ID_SUFFIX = ".group_id";
@@ -28,13 +28,13 @@ public class BotsingConfig {
 	private String packageFilter;
 	private Boolean enabled;
 
-	public BotsingConfig(String projectKey, String artifactId) {
+	public BotsingProjectConfig(String projectKey, String artifactId) {
 		super();
 		this.projectKey = projectKey;
 		this.artifactId = artifactId;
 	}
 
-	public BotsingConfig(String projectKey, String groupId, String artifactId, String version, int searchBudget,
+	public BotsingProjectConfig(String projectKey, String groupId, String artifactId, String version, int searchBudget,
 			int globalTimeout, int population, String packageFilter, Boolean enabled) {
 		super();
 		this.projectKey = projectKey;
@@ -122,7 +122,7 @@ public class BotsingConfig {
 
 	@Override
 	public String toString() {
-		return "BotsingConfig [projectKey=" + projectKey + ", groupId=" + groupId + ", artifactId=" + artifactId
+		return "BotsingProjectConfig [projectKey=" + projectKey + ", groupId=" + groupId + ", artifactId=" + artifactId
 				+ ", version=" + version + ", searchBudget=" + searchBudget + ", globalTimeout=" + globalTimeout
 				+ ", population=" + population + ", packageFilter=" + packageFilter + ", enabled=" + enabled + "]";
 	}

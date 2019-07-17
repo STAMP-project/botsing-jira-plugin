@@ -1,5 +1,9 @@
 package eu.stamp_project.jira.plugins.utils;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,5 +43,10 @@ public class JiraUtil {
 		newLabelSet.add(BotsingAttachmentListener.LABEL_REPRODUCTION_DOING);
 
 		return newLabelSet;
+	}
+
+	public static String readFile(String path, Charset encoding) throws IOException {
+		byte[] encoded = Files.readAllBytes(Paths.get(path));
+		return new String(encoded, encoding);
 	}
 }

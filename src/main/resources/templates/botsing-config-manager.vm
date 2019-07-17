@@ -29,30 +29,30 @@ $webResourceManager.requireResource("eu.stamp_project.botsing-jira-plugin:botsin
         </tr>
         </thead>
         <tbody>
-            #foreach ($botsingConfig in $action.getBotsingConfigMap())
-                #set($projectKey = $botsingConfig.getProjectKey())
+            #foreach ($botsingProjectConfig in $action.getBotsingProjectConfigMap())
+                #set($projectKey = $botsingProjectConfig.getProjectKey())
             <tr>
-                <td data-val="$botsingConfig.getProjectKey()" data-name="project_key">
-                    $botsingConfig.getProjectKey()<br/><br/>
-				 	#if($botsingConfig.getEnabled())
+                <td data-val="$botsingProjectConfig.getProjectKey()" data-name="project_key">
+                    $botsingProjectConfig.getProjectKey()<br/><br/>
+				 	#if($botsingProjectConfig.getEnabled())
 						<span class="aui-lozenge aui-lozenge-success">$i18n.getText('jigit.settings.table.columns.enabled')</span> 
 					#else
 						<span class="aui-lozenge">$i18n.getText('jigit.settings.table.columns.disabled')</span>
 					#end
 				</td>
-                <td data-val="$botsingConfig.getArtifactId()" data-name="artifact_id">
+                <td data-val="$botsingProjectConfig.getArtifactId()" data-name="artifact_id">
                     <ul>
-                    #if($botsingConfig.getGroupId())<li>$i18n.getText('botsing.config.group_id.label'): $botsingConfig.getGroupId()</li>#end
-                    #if($botsingConfig.getArtifactId())<li>$i18n.getText('botsing.config.artifact_id.label'): $botsingConfig.getArtifactId()</li>#end
-                    #if($botsingConfig.getVersion())<li>$i18n.getText('botsing.config.version.label'): $botsingConfig.getVersion()</li>#end
+                    #if($botsingProjectConfig.getGroupId())<li>$i18n.getText('botsing.config.group_id.label'): $botsingProjectConfig.getGroupId()</li>#end
+                    #if($botsingProjectConfig.getArtifactId())<li>$i18n.getText('botsing.config.artifact_id.label'): $botsingProjectConfig.getArtifactId()</li>#end
+                    #if($botsingProjectConfig.getVersion())<li>$i18n.getText('botsing.config.version.label'): $botsingProjectConfig.getVersion()</li>#end
                     </ul>
                 </td>
-                <td data-val="$botsingConfig.getArtifactId()" data-name="artifact_id">
+                <td data-val="$botsingProjectConfig.getArtifactId()" data-name="artifact_id">
                     <ul>
-                	#if($botsingConfig.getSearchBudget())<li>$i18n.getText('botsing.config.search_budget.label'): $botsingConfig.getSearchBudget()</li>#end
-					#if($botsingConfig.getGlobalTimeout())<li>$i18n.getText('botsing.config.global_timeout.label'): $botsingConfig.getGlobalTimeout()</li>#end
-					#if($botsingConfig.getPopulation())<li>$i18n.getText('botsing.config.population.label'): $botsingConfig.getPopulation()</li>#end
-					#if($botsingConfig.getPackageFilter())<li>$i18n.getText('botsing.config.package_filter.label'): $botsingConfig.getPackageFilter()</li>#end
+                	#if($botsingProjectConfig.getSearchBudget())<li>$i18n.getText('botsing.config.search_budget.label'): $botsingProjectConfig.getSearchBudget()</li>#end
+					#if($botsingProjectConfig.getGlobalTimeout())<li>$i18n.getText('botsing.config.global_timeout.label'): $botsingProjectConfig.getGlobalTimeout()</li>#end
+					#if($botsingProjectConfig.getPopulation())<li>$i18n.getText('botsing.config.population.label'): $botsingProjectConfig.getPopulation()</li>#end
+					#if($botsingProjectConfig.getPackageFilter())<li>$i18n.getText('botsing.config.package_filter.label'): $botsingProjectConfig.getPackageFilter()</li>#end
 					</ul>
 				</td>
                 <td>
@@ -66,7 +66,7 @@ $webResourceManager.requireResource("eu.stamp_project.botsing-jira-plugin:botsin
                             <li><a href="#" class="edit-botsing-config-button">$i18n.getText('botsing.buttons.edit')</a></li>
                             <li>
                                 <a href="#" class="activity-botsing-config-button" data-form="activity-botsing-config">
-                                    #if($botsingConfig.getEnabled())
+                                    #if($botsingProjectConfig.getEnabled())
                                     	$i18n.getText('botsing.buttons.disable')
                                     #else
                                         $i18n.getText('botsing.buttons.enable')
@@ -80,13 +80,13 @@ $webResourceManager.requireResource("eu.stamp_project.botsing-jira-plugin:botsin
                             </li>
                         </ul>
                     </div>
-                    <form class="activity-botsing-config" method="post" action="$req.contextPath/rest/botsing-config/1.0/config/$projectKey/activity">
-                        <input type="hidden" name="enabled" #if($botsingConfig.getEnabled()) value="false" #else value="true" #end>
+                    <form class="activity-botsing-config" method="post" action="$req.contextPath/rest/botsing-config/1.0/config/project/$projectKey/activity">
+                        <input type="hidden" name="enabled" #if($botsingProjectConfig.getEnabled()) value="false" #else value="true" #end>
                     </form>
 
                     <form class="remove-botsing-config" method="post"
                           onsubmit="return confirm('$i18n.getText("botsing.confirm.delete.config")');"
-                          action="$req.contextPath/rest/botsing-config/1.0/config/$projectKey/remove">
+                          action="$req.contextPath/rest/botsing-config/1.0/config/project/$projectKey/remove">
                     </form>
 
                 </td>
@@ -99,15 +99,36 @@ $webResourceManager.requireResource("eu.stamp_project.botsing-jira-plugin:botsin
             <td>
                 <input type="button" id="add-botsing-config-button" value="$i18n.getText('botsing.buttons.add')"
                        class="aui-button"/>
+                <input type="button" id="edit-botsing-server-config-button" value="$i18n.getText('botsing.buttons.server-edit')"
+                       class="aui-button"/>
             </td>
         </tr>
         </tbody>
     </table>
 
+    <div id="edit-botsing-server-config-container" style="display: none;" class="aui-panel">
+        <div class="message-container"></div>
+        
+        <form id="edit-botsing-server-config-form" method="post" class="aui" action="$req.contextPath/rest/botsing-config/1.0/config/server/edit">
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.server_url.label")</label>
+                <input type="text" name="base_url" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.server_user.label")</label>
+                <input type="text" name="user" class="text form-data"/>
+            </div>
+ 			<div class="field-group">
+                <label>$i18n.getText("botsing.config.server_password.label")</label>
+                <input type="text" name="password" class="text form-data"/>
+            </div>
+        </form>
+    </div>
+
     <div id="add-botsing-config-container" style="display: none;" class="aui-panel">
         <div class="message-container"></div>
         
-        <form id="add-botsing-config-form" method="post" class="aui" action="$req.contextPath/rest/botsing-config/1.0/config/add">
+        <form id="add-botsing-config-form" method="post" class="aui" action="$req.contextPath/rest/botsing-config/1.0/config/project/add">
             <div class="field-group">
                 <label>$i18n.getText("botsing.config.project_key.label")</label>
                 <input type="text" name="project_key" class="text form-data"/>
@@ -146,7 +167,7 @@ $webResourceManager.requireResource("eu.stamp_project.botsing-jira-plugin:botsin
     <div id="edit-botsing-config-container" style="display: none;" class="aui-panel">
         <div class="message-container"></div>
         
-        <form id="edit-botsing-config-form" method="post" class="aui" action="$req.contextPath/rest/botsing-config/1.0/config/edit">
+        <form id="edit-botsing-config-form" method="post" class="aui" action="$req.contextPath/rest/botsing-config/1.0/config/project/edit">
             <div class="field-group">
                 <label>$i18n.getText("botsing.config.project_key.label")</label>
                 <input type="text" name="project_key" class="text form-data"/>

@@ -17,7 +17,9 @@ import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import eu.stamp_project.jira.plugins.config.BotsingConfig;
+import eu.stamp_project.jira.plugins.config.BotsingProjectConfig;
+import eu.stamp_project.jira.plugins.config.BotsingServerConfig;
+import eu.stamp_project.jira.plugins.service.BotsingConfigService;
 
 public class BotsingConfigAction extends JiraWebActionSupport implements AuthorizationSupport, HttpServletVariables {
 
@@ -33,26 +35,33 @@ public class BotsingConfigAction extends JiraWebActionSupport implements Authori
 	@Inject
 	public BotsingConfigAction(PluginSettingsFactory pluginSettingsFactory) {
 
-		pluginSettings = pluginSettingsFactory.createSettingsForKey(BotsingConfig.class.getName());
+		pluginSettings = pluginSettingsFactory.createSettingsForKey(BotsingConfigService.class.getName());
 
 	}
 
-	public Map<String, BotsingConfig> getBotsingConfigMap() {
-		return Collections.unmodifiableMap(new TreeMap<>(getBotsingConfigs()));
+	public BotsingServerConfig getBotsingServerConfig() {
+		Type emptyMapType = new TypeToken<BotsingServerConfig>() {}.getType();
+
+		final BotsingServerConfig config = gson.fromJson((String) pluginSettings.get(BotsingServerConfig.BOTSING_SERVER_CONFIG_KEY), emptyMapType);
+
+		return config;
+	}
+
+	public Map<String, BotsingProjectConfig> getBotsingProjectConfigMap() {
+		return Collections.unmodifiableMap(new TreeMap<>(getBotsingProjectConfigs()));
 	}
 
 	public boolean hasAdminPermission() {
 		return isSystemAdministrator();
 	}
 
-	private Map<String, BotsingConfig> getBotsingConfigs() {
-		Type emptyMapType = new TypeToken<Map<String, BotsingConfig>>() {
-		}.getType();
+	private Map<String, BotsingProjectConfig> getBotsingProjectConfigs() {
+		Type emptyMapType = new TypeToken<Map<String, BotsingProjectConfig>>() {}.getType();
 
-		final Map<String, BotsingConfig> configs = gson
-				.fromJson((String) pluginSettings.get(BotsingConfig.BOTSING_CONFIG_KEY), emptyMapType);
+		final Map<String, BotsingProjectConfig> configs = gson
+				.fromJson((String) pluginSettings.get(BotsingProjectConfig.BOTSING_PROJECT_CONFIG_KEY), emptyMapType);
 
-		return configs == null ? new HashMap<String, BotsingConfig>() : configs;
+		return configs == null ? new HashMap<String, BotsingProjectConfig>() : configs;
 	}
 
 }

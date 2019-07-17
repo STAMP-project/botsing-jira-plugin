@@ -10,10 +10,12 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -29,13 +31,13 @@ import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.util.I18nHelper;
 import com.atlassian.plugin.spring.scanner.annotation.component.Scanned;
 import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
-import com.atlassian.plugin.spring.scanner.annotation.imports.JiraImport;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import eu.stamp_project.jira.plugins.config.BotsingConfig;
+import eu.stamp_project.jira.plugins.config.BotsingProjectConfig;
+import eu.stamp_project.jira.plugins.config.BotsingServerConfig;
 import eu.stamp_project.jira.plugins.utils.JiraUtil;
 
 @Path("/")
@@ -47,8 +49,8 @@ public class BotsingConfigService {
 	@ComponentImport
 	PluginSettingsFactory pluginSettingsFactory;
 
-	@JiraImport
-	private final LabelManager labelManager;
+//	@JiraImport
+//	private final LabelManager labelManager;
 
     @Context
     private HttpServletRequest request;
@@ -59,9 +61,42 @@ public class BotsingConfigService {
 	public BotsingConfigService(PluginSettingsFactory pluginSettingsFactory, final LabelManager labelManager) {
 
 		this.pluginSettingsFactory = pluginSettingsFactory;
-		this.labelManager = labelManager;
-		pluginSettings = this.pluginSettingsFactory.createSettingsForKey(BotsingConfig.class.getName());
+//		this.labelManager = labelManager;
+		pluginSettings = this.pluginSettingsFactory.createSettingsForKey(BotsingConfigService.class.getName());
         this.i18n = ComponentAccessor.getJiraAuthenticationContext().getI18nHelper();
+	}
+
+
+    @GET
+    @Path("config/hello")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response getMessage(@QueryParam("key") String key)
+    {
+    	// TODO: classe per testare se i servizi sono raggiungibili
+        if(key!=null)
+            return Response.ok(new BotsingProjectConfig("PRJ", "artifactId")).build();
+        else
+            return Response.ok(new BotsingProjectConfig("PRJ2", "artifactId222")).build();
+    }
+
+	@POST
+	@Path("config/server/edit")
+	@Produces(MediaType.TEXT_HTML)
+	public Response editBotsingServerConfig(@FormParam("base_url") @DefaultValue("") String baseUrl,
+			@FormParam("user") @DefaultValue("") String user,
+			@FormParam("password") @DefaultValue("") String password) {
+
+		// check admin authorization
+        final Response response = checkAdminPermissions(ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser());
+        if (response != null) {
+            return response;
+        }
+
+		final BotsingServerConfig newBotsingServerConfig = new BotsingServerConfig(baseUrl, user, password);
+		addBotsingServerConfig(newBotsingServerConfig);
+
+		log.info("Added new Botsing server configuration");
+		return Response.ok().build();
 	}
 
 	/**
@@ -77,9 +112,9 @@ public class BotsingConfigService {
 	 * @return
 	 */
 	@POST
-	@Path("config/add")
+	@Path("config/project/add")
 	@Produces(MediaType.TEXT_HTML)
-	public Response addBotsingConfig(@FormParam("project_key") @DefaultValue("") String projectKey,
+	public Response addBotsingProjectConfig(@FormParam("project_key") @DefaultValue("") String projectKey,
 			@FormParam("group_id") @DefaultValue("") String groupId,
 			@FormParam("artifact_id") @DefaultValue("") String artifactId,
 			@FormParam("version") @DefaultValue("") String version,
@@ -95,16 +130,16 @@ public class BotsingConfigService {
         }
 
 		// check if configuration already exist
-		final BotsingConfig existingBotsingConfig = getBotsingConfig(projectKey);
-		if (existingBotsingConfig != null) {
+		final BotsingProjectConfig existingBotsingProjectConfig = getBotsingProjectConfig(projectKey);
+		if (existingBotsingProjectConfig != null) {
 			return Response.ok(i18n.getText("botsing.error.params.config.exists", projectKey))
 					.status(Response.Status.BAD_REQUEST).build();
 		}
 
-		final BotsingConfig newBotsingConfig = new BotsingConfig(projectKey, groupId, artifactId, version, searchBudget,
+		final BotsingProjectConfig newBotsingProjectConfig = new BotsingProjectConfig(projectKey, groupId, artifactId, version, searchBudget,
 				globalTimeout, population, packageFilter, true);
 
-		addBotsingConfig(newBotsingConfig);
+		addBotsingProjectConfig(newBotsingProjectConfig);
 
 		log.info("Added new Botsing configuration for project '" + projectKey + "'");
 		return Response.ok().build();
@@ -123,7 +158,7 @@ public class BotsingConfigService {
 	 * @return
 	 */
 	@POST
-    @Path("config/edit")
+    @Path("config/project/edit")
     @Produces(MediaType.TEXT_HTML)
     public Response editConfig(@FormParam("project_key") @DefaultValue("") String projectKey,
 			@FormParam("group_id") @DefaultValue("") String groupId,
@@ -146,16 +181,16 @@ public class BotsingConfigService {
         }
 
         // get existing configuration
-        final BotsingConfig existingBotsingConfig = getBotsingConfig(projectKey);
-        if (existingBotsingConfig == null) {
+        final BotsingProjectConfig existingBotsingProjectConfig = getBotsingProjectConfig(projectKey);
+        if (existingBotsingProjectConfig == null) {
             return Response.ok(i18n.getText("botsing.error.params.invalid")).status(Response.Status.BAD_REQUEST).build();
         }
 
         // override existing botsing config
-        final BotsingConfig newBotsingConfig = new BotsingConfig(projectKey, groupId, artifactId, version, searchBudget,
-				globalTimeout, population, packageFilter, existingBotsingConfig.getEnabled());
+        final BotsingProjectConfig newBotsingProjectConfig = new BotsingProjectConfig(projectKey, groupId, artifactId, version, searchBudget,
+				globalTimeout, population, packageFilter, existingBotsingProjectConfig.getEnabled());
 
-		addBotsingConfig(newBotsingConfig);
+		addBotsingProjectConfig(newBotsingProjectConfig);
 
         log.info("Edited Botsing configuration for project '" + projectKey + "'");
         return Response.ok().build();
@@ -168,9 +203,9 @@ public class BotsingConfigService {
 	 * @return
 	 */
 	@POST
-    @Path("/config/{config:.+}/activity")
+    @Path("config/project/{projectKey:.+}/activity")
     @Produces(MediaType.TEXT_HTML)
-    public Response disableConfig(@PathParam("config") @DefaultValue("") String projectKey,
+    public Response disableConfig(@PathParam("projectKey") @DefaultValue("") String projectKey,
                                 @FormParam("enabled") Boolean enabled) {
 
 		// check admin authorization
@@ -185,16 +220,19 @@ public class BotsingConfigService {
         }
 
         // get existing configuration
-        final BotsingConfig existingBotsingConfig = getBotsingConfig(projectKey);
-        if (existingBotsingConfig == null) {
+        final BotsingProjectConfig existingBotsingProjectConfig = getBotsingProjectConfig(projectKey);
+        if (existingBotsingProjectConfig == null) {
             return Response.ok(i18n.getText("botsing.error.params.invalid")).status(Response.Status.BAD_REQUEST).build();
         }
 
         // override existing botsing config
-        final BotsingConfig newBotsingConfig = new BotsingConfig(projectKey, existingBotsingConfig.getGroupId(), existingBotsingConfig.getArtifactId(), existingBotsingConfig.getVersion(), existingBotsingConfig.getSearchBudget(),
-        		existingBotsingConfig.getGlobalTimeout(), existingBotsingConfig.getPopulation(), existingBotsingConfig.getPackageFilter(), enabled);
+		final BotsingProjectConfig newBotsingProjectConfig = new BotsingProjectConfig(projectKey,
+				existingBotsingProjectConfig.getGroupId(), existingBotsingProjectConfig.getArtifactId(),
+				existingBotsingProjectConfig.getVersion(), existingBotsingProjectConfig.getSearchBudget(),
+				existingBotsingProjectConfig.getGlobalTimeout(), existingBotsingProjectConfig.getPopulation(),
+				existingBotsingProjectConfig.getPackageFilter(), enabled);
 
-        addBotsingConfig(newBotsingConfig);
+        addBotsingProjectConfig(newBotsingProjectConfig);
 
         log.info("Botsing configuration was "+ (enabled ? "enabled" : "disabled") +"for project '" + projectKey + "'");
         return getReferrerResponse(request);
@@ -206,9 +244,9 @@ public class BotsingConfigService {
 	 * @return
 	 */
     @POST
-    @Path("/config/{config:.+}/remove")
+    @Path("config/project/{projectKey:.+}/remove")
     @Produces(MediaType.TEXT_HTML)
-    public Response removeBotsingConfig( @PathParam("config") @DefaultValue("") String projectKey) {
+    public Response removeBotsingProjectConfig( @PathParam("projectKey") @DefaultValue("") String projectKey) {
 
 		// check admin authorization
         final Response response = checkAdminPermissions(ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser());
@@ -220,7 +258,7 @@ public class BotsingConfigService {
             return Response.ok(i18n.getText("config.error.params.empty")).status(Response.Status.BAD_REQUEST).build();
         }
 
-        deleteBotsingConfig(projectKey);
+        deleteBotsingProjectConfig(projectKey);
 
         log.info("Removed Botsing configuration for project '" + projectKey + "'");
         return getReferrerResponse(request);
@@ -233,7 +271,7 @@ public class BotsingConfigService {
      * @return
      */
 	@POST
-    @Path("/reproduction/{issue:.+}/add")
+    @Path("reproduction/{issue:.+}/add")
     @Produces(MediaType.TEXT_HTML)
     public Response createAttachment(@PathParam("issue") @DefaultValue("") String issueKey) {
 
@@ -254,8 +292,8 @@ public class BotsingConfigService {
         }
 
         // get existing configuration
-        final BotsingConfig existingBotsingConfig = getBotsingConfig(JiraUtil.getProjectKeyFromIssueKey(issueKey));
-        if (existingBotsingConfig == null) {
+        final BotsingProjectConfig existingBotsingProjectConfig = getBotsingProjectConfig(JiraUtil.getProjectKeyFromIssueKey(issueKey));
+        if (existingBotsingProjectConfig == null) {
             return Response.ok(i18n.getText("botsing.error.params.invalid")).status(Response.Status.BAD_REQUEST).build();
         }
 
@@ -273,7 +311,7 @@ public class BotsingConfigService {
         // add done label
         // TODO make user configurable!
 
-        labelManager.setLabels(user, issue.getId(), JiraUtil.getDoneLabelSet(labelManager.getLabels(issue.getId())), false, true);
+//        labelManager.setLabels(user, issue.getId(), JiraUtil.getDoneLabelSet(labelManager.getLabels(issue.getId())), false, true);
 
 		return Response.ok().build();
 
@@ -293,34 +331,47 @@ public class BotsingConfigService {
 
     private final Gson gson = new Gson();
 
-	public BotsingConfig getBotsingConfig(String projectKey) {
-        final Map<String, BotsingConfig> configs = getBotsingConfigMap();
+    private BotsingServerConfig getBotsingServerConfig() {
+    	Type emptyType = new TypeToken<BotsingServerConfig>() {}.getType();
+
+        final BotsingServerConfig config = gson.fromJson((String)pluginSettings.get(BotsingServerConfig.BOTSING_SERVER_CONFIG_KEY), emptyType);
+
+        return config;
+    }
+
+	public void addBotsingServerConfig(BotsingServerConfig config) {
+
+        pluginSettings.put(BotsingServerConfig.BOTSING_SERVER_CONFIG_KEY, gson.toJson(config));
+    }
+
+	public BotsingProjectConfig getBotsingProjectConfig(String projectKey) {
+        final Map<String, BotsingProjectConfig> configs = getBotsingProjectConfigMap();
 
         return configs.get(projectKey);
     }
 
-	public void addBotsingConfig(BotsingConfig config) {
-        final Map<String, BotsingConfig> configs = getBotsingConfigMap();
+	public void addBotsingProjectConfig(BotsingProjectConfig config) {
+        final Map<String, BotsingProjectConfig> configs = getBotsingProjectConfigMap();
 
         configs.put(config.getProjectKey(), config);
 
-        pluginSettings.put(BotsingConfig.BOTSING_CONFIG_KEY, gson.toJson(configs));
+        pluginSettings.put(BotsingProjectConfig.BOTSING_PROJECT_CONFIG_KEY, gson.toJson(configs));
     }
 
-	public void deleteBotsingConfig(String projectKey) {
-        final Map<String, BotsingConfig> configs = getBotsingConfigMap();
+	public void deleteBotsingProjectConfig(String projectKey) {
+        final Map<String, BotsingProjectConfig> configs = getBotsingProjectConfigMap();
 
         configs.remove(projectKey);
 
-        pluginSettings.put(BotsingConfig.BOTSING_CONFIG_KEY, gson.toJson(configs));
+        pluginSettings.put(BotsingProjectConfig.BOTSING_PROJECT_CONFIG_KEY, gson.toJson(configs));
     }
 
-    private Map<String, BotsingConfig> getBotsingConfigMap() {
-    	Type emptyMapType = new TypeToken<Map<String, BotsingConfig>>() {}.getType();
+    private Map<String, BotsingProjectConfig> getBotsingProjectConfigMap() {
+    	Type emptyMapType = new TypeToken<Map<String, BotsingProjectConfig>>() {}.getType();
 
-        final Map<String, BotsingConfig> configs = gson.fromJson((String)pluginSettings.get(BotsingConfig.BOTSING_CONFIG_KEY), emptyMapType);
+        final Map<String, BotsingProjectConfig> configs = gson.fromJson((String)pluginSettings.get(BotsingProjectConfig.BOTSING_PROJECT_CONFIG_KEY), emptyMapType);
 
-        return configs == null ? new HashMap<String, BotsingConfig>() : configs;
+        return configs == null ? new HashMap<String, BotsingProjectConfig>() : configs;
     }
 
     private Response checkAdminPermissions(ApplicationUser user) {

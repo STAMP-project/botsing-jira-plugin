@@ -1,6 +1,7 @@
 AJS.$(function () {
     
 	AJS.$("#add-botsing-config-button").click(showAddDialog);
+	AJS.$("#edit-botsing-server-config-button").click(showEditServerDialog);
 	AJS.$(".edit-botsing-config-button").click(showEditDialog);
     AJS.$(".remove-botsing-config-button, .activity-botsing-config-button, .clear-botsing-config-button").click(function () {
         getActionTriggerElement(this).closest("tr").find("." + AJS.$(this).attr("data-form")).submit();
@@ -13,6 +14,12 @@ AJS.$(function () {
         return serializedData;
     }
 
+    function showEditServerDialog() {
+        var interior = AJS.$("#edit-botsing-server-config-container").clone();
+
+        showDialog(interior, "edit-botsing-server-config-dialog", AJS.I18n.getText("botsing.buttons.edit"));
+    }
+    
     function showAddDialog() {
         var interior = AJS.$("#add-botsing-config-container").clone();
 

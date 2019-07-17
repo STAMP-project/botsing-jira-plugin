@@ -17,7 +17,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.client.urlconnection.HttpURLConnectionFactory;
 import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
-import eu.stamp_project.jira.plugins.config.BotsingConfigIssue;
+import eu.stamp_project.jira.plugins.config.BotsingIssueConfig;
 
 /**
  * Class to call the Botsing server.
@@ -94,7 +94,7 @@ public class BotsingClient {
 	 * @param issueConfig
 	 * @return
 	 */
-	public String postBotsingIssueEventCall(BotsingConfigIssue issueConfig) {
+	public String postBotsingIssueEventCall(BotsingIssueConfig issueConfig) {
 		WebResource webResource = client.resource(baseUrl + BOTSING_SERVER_JIRA_URL);
 		webResource.header(JIRA_EVENT_HEADER_PARAM, JIRA_NEW_BOTSING_ISSUE_EVENT);
 
