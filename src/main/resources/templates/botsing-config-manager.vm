@@ -40,19 +40,28 @@ $webResourceManager.requireResource("eu.stamp_project.botsing-jira-plugin:botsin
 						<span class="aui-lozenge">$i18n.getText('jigit.settings.table.columns.disabled')</span>
 					#end
 				</td>
-                <td data-val="$botsingProjectConfig.getArtifactId()" data-name="artifact_id">
+                <td>
                     <ul>
-                    #if($botsingProjectConfig.getGroupId())<li>$i18n.getText('botsing.config.group_id.label'): $botsingProjectConfig.getGroupId()</li>#end
-                    #if($botsingProjectConfig.getArtifactId())<li>$i18n.getText('botsing.config.artifact_id.label'): $botsingProjectConfig.getArtifactId()</li>#end
-                    #if($botsingProjectConfig.getVersion())<li>$i18n.getText('botsing.config.version.label'): $botsingProjectConfig.getVersion()</li>#end
+                    <div data-val="$botsingProjectConfig.getGroupId()" data-name="group_id">
+                    	#if($botsingProjectConfig.getGroupId())<li>$i18n.getText('botsing.config.group_id.label'): $botsingProjectConfig.getGroupId()</li>#end
+                    </div><div data-val="$botsingProjectConfig.getArtifactId()" data-name="artifact_id">
+                    	#if($botsingProjectConfig.getArtifactId())<li>$i18n.getText('botsing.config.artifact_id.label'): $botsingProjectConfig.getArtifactId()</li>#end
+                    </div><div data-val="$botsingProjectConfig.getVersion()" data-name="version">
+                    	#if($botsingProjectConfig.getVersion())<li>$i18n.getText('botsing.config.version.label'): $botsingProjectConfig.getVersion()</li>#end
+                    </div>
                     </ul>
                 </td>
-                <td data-val="$botsingProjectConfig.getArtifactId()" data-name="artifact_id">
+                <td>
                     <ul>
-                	#if($botsingProjectConfig.getSearchBudget())<li>$i18n.getText('botsing.config.search_budget.label'): $botsingProjectConfig.getSearchBudget()</li>#end
-					#if($botsingProjectConfig.getGlobalTimeout())<li>$i18n.getText('botsing.config.global_timeout.label'): $botsingProjectConfig.getGlobalTimeout()</li>#end
-					#if($botsingProjectConfig.getPopulation())<li>$i18n.getText('botsing.config.population.label'): $botsingProjectConfig.getPopulation()</li>#end
-					#if($botsingProjectConfig.getPackageFilter())<li>$i18n.getText('botsing.config.package_filter.label'): $botsingProjectConfig.getPackageFilter()</li>#end
+                    <div data-val="$botsingProjectConfig.getSearchBudget()" data-name="search_budget">
+                		#if($botsingProjectConfig.getSearchBudget())<li>$i18n.getText('botsing.config.search_budget.label'): $botsingProjectConfig.getSearchBudget()</li>#end
+					</div><div data-val="$botsingProjectConfig.getGlobalTimeout()" data-name="global_timeout">
+						#if($botsingProjectConfig.getGlobalTimeout())<li>$i18n.getText('botsing.config.global_timeout.label'): $botsingProjectConfig.getGlobalTimeout()</li>#end
+					</div><div data-val="$botsingProjectConfig.getPopulation()" data-name="population">
+						#if($botsingProjectConfig.getPopulation())<li>$i18n.getText('botsing.config.population.label'): $botsingProjectConfig.getPopulation()</li>#end
+					</div><div data-val="$botsingProjectConfig.getPackageFilter()" data-name="package_filter">
+						#if($botsingProjectConfig.getPackageFilter())<li>$i18n.getText('botsing.config.package_filter.label'): $botsingProjectConfig.getPackageFilter()</li>#end
+					</div>
 					</ul>
 				</td>
                 <td>
@@ -106,21 +115,23 @@ $webResourceManager.requireResource("eu.stamp_project.botsing-jira-plugin:botsin
         </tbody>
     </table>
 
+            
+    #set($serverConfig = $action.getBotsingServerConfig())
     <div id="edit-botsing-server-config-container" style="display: none;" class="aui-panel">
         <div class="message-container"></div>
         
         <form id="edit-botsing-server-config-form" method="post" class="aui" action="$req.contextPath/rest/botsing-config/1.0/config/server/edit">
             <div class="field-group">
                 <label>$i18n.getText("botsing.config.server_url.label")</label>
-                <input type="text" name="base_url" class="text form-data"/>
+                <input type="text" name="base_url" class="text form-data" value="$serverConfig.getBaseUrl()"/>
             </div>
             <div class="field-group">
                 <label>$i18n.getText("botsing.config.server_user.label")</label>
-                <input type="text" name="user" class="text form-data"/>
+                <input type="text" name="user" class="text form-data" value="$serverConfig.getUser()"/>
             </div>
  			<div class="field-group">
                 <label>$i18n.getText("botsing.config.server_password.label")</label>
-                <input type="text" name="password" class="text form-data"/>
+                <input type="text" name="password" class="text form-data" value="$serverConfig.getPassword()"/>
             </div>
         </form>
     </div>

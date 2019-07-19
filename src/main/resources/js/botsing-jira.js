@@ -33,6 +33,12 @@ AJS.$(function () {
     function showEditDialog() {
         var interior = AJS.$("#edit-botsing-config-container").clone();
 
+        getActionTriggerElement(this).closest("tr").find("[data-val][data-name]").each(function () {
+            var element = AJS.$(this);
+            var inputs = interior.find("[name='" + element.attr("data-name") + "']");
+            inputs.val(inputs.first().is(":radio") ? [element.attr("data-val")] : element.attr("data-val")).change();
+        });
+        
         showDialog(interior, "edit-botsing-config-dialog", AJS.I18n.getText("botsing.buttons.edit"));
     }
 

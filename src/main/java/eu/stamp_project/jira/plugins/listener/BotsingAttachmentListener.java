@@ -1,14 +1,12 @@
 package eu.stamp_project.jira.plugins.listener;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
-import org.ofbiz.core.entity.GenericValue;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -19,10 +17,12 @@ import org.springframework.stereotype.Component;
 import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
+import com.atlassian.jira.issue.AttachmentManager;
 import com.atlassian.jira.issue.Issue;
 import com.atlassian.jira.issue.attachment.Attachment;
 import com.atlassian.jira.issue.label.Label;
 import com.atlassian.jira.issue.label.LabelManager;
+import com.atlassian.jira.util.io.InputStreamConsumer;
 import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import com.atlassian.plugin.spring.scanner.annotation.imports.JiraImport;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
@@ -34,7 +34,7 @@ import eu.stamp_project.jira.plugins.BotsingClient;
 import eu.stamp_project.jira.plugins.config.BotsingIssueConfig;
 import eu.stamp_project.jira.plugins.config.BotsingProjectConfig;
 import eu.stamp_project.jira.plugins.config.BotsingServerConfig;
-import eu.stamp_project.jira.plugins.utils.JiraUtil;
+import eu.stamp_project.jira.plugins.service.BotsingConfigService;
 
 @Component
 public class BotsingAttachmentListener implements InitializingBean, DisposableBean {
@@ -51,6 +51,9 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 	@JiraImport
 	private final LabelManager labelManager;
 
+	@JiraImport
+	private final AttachmentManager attachmentManager;
+
     private final PluginSettings pluginSettings;
 
     private final Gson gson = new Gson();
@@ -60,11 +63,12 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 
 	@Autowired
 	public BotsingAttachmentListener(final EventPublisher eventPublisher, final LabelManager labelManager,
-			final PluginSettingsFactory pluginSettingsFactory) {
+			final AttachmentManager attachmentManager, final PluginSettingsFactory pluginSettingsFactory) {
 
 		this.eventPublisher = eventPublisher;
 		this.labelManager = labelManager;
-		pluginSettings = pluginSettingsFactory.createSettingsForKey(BotsingProjectConfig.class.getName());
+		this.attachmentManager = attachmentManager;
+		pluginSettings = pluginSettingsFactory.createSettingsForKey(BotsingConfigService.class.getName());
 	}
 
 	/**
@@ -152,6 +156,7 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 		return configs.get(projectKey);
 	}
 
+	@SuppressWarnings("unchecked")
 	private String getAttachmentAsString(Issue issue) {
 		String result = null;
 
@@ -168,33 +173,19 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 
 		Attachment a = attachments.iterator().next();
 		try {
-			result = JiraUtil.readFile(a.getFilename(), Charset.defaultCharset());
+
+			result = (String)attachmentManager.streamAttachmentContent(a, new InputStreamConsumer() {
+				@Override
+				public String withInputStream(final InputStream is) throws IOException {
+					return IOUtils.toString(is);
+				}
+			});
+
 		} catch (IOException e) {
-			log.error("Cannot read attachment '" + a.getFilename() + "'");
+			log.error("Cannot read attachment '" + a.getFilename() + "'", e);
 		}
 
 		return result;
 	}
 
-	private List<String> getAttachmentsInChangeSet(IssueEvent issueEvent) {
-		List<String> attachmentIds = new ArrayList<String>();
-
-		try {
-			GenericValue cl = issueEvent.getChangeLog();
-			List<GenericValue> children = cl.getRelated("ChildChangeItem");
-
-			for (GenericValue child : children) {
-
-				String fieldName = child.getString("field");
-				if (fieldName.equals("Attachment")) {
-					attachmentIds.add(child.getString("newvalue"));
-				}
-			}
-
-		} catch (Exception e) {
-			log.error("Error reading issue event", e);
-		}
-
-		return attachmentIds;
-	}
 }
