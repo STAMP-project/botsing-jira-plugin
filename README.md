@@ -6,6 +6,8 @@ This plugin analyze issues that have stacktrace as attachments and the label 'ST
 
 This plugin has been developed for Jira 7.13.0.
 
+This plugin connects to a [Botsing server](https://github.com/STAMP-project/botsing-github-app) that can be configured in the botsing-jira-plugin configuration page.
+
 ### Plugin configuration
 
 The plugin can be configured accessing the "Botsing plugin configuration" in the "Add-on" administration section.
@@ -20,6 +22,8 @@ In this page you can add a Botsing project specific configuration, such as:
 * Global timeout
 * Population
 * Package filter
+
+Also with the button 'Edit server' it is possible to configure Botsing server endpoint. 
 
 ### Jira Configuration
 
