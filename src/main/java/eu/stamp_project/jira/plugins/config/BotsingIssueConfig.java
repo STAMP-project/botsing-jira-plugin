@@ -10,10 +10,6 @@ public final class BotsingIssueConfig extends BotsingProjectConfig {
 	private String issueKey;
 	private String testFileBody;
 
-	public BotsingIssueConfig(String projectKey, String artifactId) {
-		super(projectKey, artifactId);
-	}
-
 	public BotsingIssueConfig(BotsingProjectConfig botsingProjectConfig, String issueKey, String testFileBody) {
 		super(botsingProjectConfig.getProjectKey(), botsingProjectConfig.getGroupId(), botsingProjectConfig.getArtifactId(),
 				botsingProjectConfig.getVersion(), botsingProjectConfig.getSearchBudget(), botsingProjectConfig.getGlobalTimeout(),

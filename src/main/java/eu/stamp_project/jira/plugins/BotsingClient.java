@@ -27,7 +27,7 @@ import eu.stamp_project.jira.plugins.config.BotsingIssueConfig;
 public class BotsingClient {
 
 	private static final String JIRA_EVENT_HEADER_PARAM = "X-Jira-Event";
-	private static final String JIRA_NEW_BOTSING_ISSUE_EVENT = "newBotsingIssueEvent";
+	private static final String JIRA_NEW_BOTSING_ISSUE_EVENT = "issues";
 
 	private static final String BOTSING_SERVER_JIRA_URL = "/jira/botsing-jira-app";
 	private static final String BOTSING_SERVER_TEST_URL = "/jira/test";
@@ -96,9 +96,10 @@ public class BotsingClient {
 	 */
 	public String postBotsingIssueEventCall(BotsingIssueConfig issueConfig) {
 		WebResource webResource = client.resource(baseUrl + BOTSING_SERVER_JIRA_URL);
-		webResource.header(JIRA_EVENT_HEADER_PARAM, JIRA_NEW_BOTSING_ISSUE_EVENT);
 
-		ClientResponse response = webResource.type(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, gson.toJson(issueConfig));
+		ClientResponse response = webResource.type(MediaType.APPLICATION_JSON_TYPE)
+				.header(JIRA_EVENT_HEADER_PARAM, JIRA_NEW_BOTSING_ISSUE_EVENT)
+				.post(ClientResponse.class, gson.toJson(issueConfig));
 
 		if (response.getStatus() != 200) {
 			throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());

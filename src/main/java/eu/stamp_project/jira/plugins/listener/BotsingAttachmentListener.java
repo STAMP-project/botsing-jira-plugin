@@ -109,16 +109,15 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 
 				// check botsing configuration
 				final BotsingProjectConfig botsingProjectConfig = getBotsingProjectConfig(issue.getProjectObject().getKey());
+				log.debug(botsingProjectConfig.toString());
 				if (botsingProjectConfig != null && botsingProjectConfig.getEnabled()) {
-
-					labelManager.addLabel(issueEvent.getUser(), issue.getId(), LABEL_REPRODUCTION_DOING, false);
-
-					System.out.println(botsingProjectConfig);
-					BotsingClient botsingClient = new BotsingClient(getBotsingServerConfig().getBaseUrl());
-
 					BotsingIssueConfig issueConfig = new BotsingIssueConfig(botsingProjectConfig, issue.getKey(), attachment);
 
+					// add label to exclude new calls while it is working
+					labelManager.addLabel(issueEvent.getUser(), issue.getId(), LABEL_REPRODUCTION_DOING, false);
+
 					// call Botsting-server service
+					BotsingClient botsingClient = new BotsingClient(getBotsingServerConfig().getBaseUrl());
 					botsingClient.postBotsingIssueEventCall(issueConfig);
 
 				} else {
@@ -162,7 +161,7 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 
 		// check attachment
 		Collection<Attachment> attachments = issue.getAttachments();
-		if (attachments == null) {
+		if (attachments == null || attachments.size() <= 0) {
 			log.warn("No attachment found in issue '"+issue.getKey()+"'");
 			return null;
 
