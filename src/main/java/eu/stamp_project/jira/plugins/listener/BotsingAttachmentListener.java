@@ -16,6 +16,8 @@ import org.springframework.stereotype.Component;
 
 import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
+import com.atlassian.jira.component.ComponentAccessor;
+import com.atlassian.jira.config.properties.APKeys;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.issue.AttachmentManager;
 import com.atlassian.jira.issue.Issue;
@@ -31,6 +33,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import eu.stamp_project.jira.plugins.BotsingClient;
+import eu.stamp_project.jira.plugins.config.BotsingConfig;
 import eu.stamp_project.jira.plugins.config.BotsingIssueConfig;
 import eu.stamp_project.jira.plugins.config.BotsingProjectConfig;
 import eu.stamp_project.jira.plugins.config.BotsingServerConfig;
@@ -113,12 +116,15 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 				if (botsingProjectConfig != null && botsingProjectConfig.getEnabled()) {
 					BotsingIssueConfig issueConfig = new BotsingIssueConfig(botsingProjectConfig, issue.getKey(), attachment);
 
+					String callbackURL = ComponentAccessor.getApplicationProperties().getString(APKeys.JIRA_BASEURL)+"/rest/botsing-config/1.0/reproduction/ABC-123/add";
+					BotsingConfig config = new BotsingConfig(botsingProjectConfig, issueConfig, callbackURL);
+
 					// add label to exclude new calls while it is working
 					labelManager.addLabel(issueEvent.getUser(), issue.getId(), LABEL_REPRODUCTION_DOING, false);
 
 					// call Botsting-server service
 					BotsingClient botsingClient = new BotsingClient(getBotsingServerConfig().getBaseUrl());
-					botsingClient.postBotsingIssueEventCall(issueConfig);
+					botsingClient.postBotsingIssueEventCall(config);
 
 				} else {
 					log.warn("Received Botsing event, but no configuration found for project '"+issue.getProjectObject().getKey()+"' in botsing-jira-plugin.");

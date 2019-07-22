@@ -4,6 +4,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import eu.stamp_project.jira.plugins.config.BotsingConfig;
 import eu.stamp_project.jira.plugins.config.BotsingIssueConfig;
 import eu.stamp_project.jira.plugins.config.BotsingProjectConfig;
 
@@ -57,9 +58,10 @@ public class BotsingClientTestIT {
     	BotsingProjectConfig configProject = new BotsingProjectConfig("PL", "org.ow2.authzforce", "authzforce-ce-core-pdp-testutils", "13.3.1",
     			60, 90, 100, "org.ow2.authzforce", true);
     	BotsingIssueConfig configIssue = new BotsingIssueConfig(configProject, "PL-23", authzforceSimpleRuntimeException);
+    	BotsingConfig config = new BotsingConfig(configProject, configIssue, "http://localhost:8080/jira/rest/botsing-config/1.0/reproduction/PL-23/add");
 
     	// Call github service on botsing-server on OW2 server
-    	String output = botsingClient.postBotsingIssueEventCall(configIssue);
+    	String output = botsingClient.postBotsingIssueEventCall(config);
 
         System.out.println("Output from Server .... \n");
 		System.out.println(output);

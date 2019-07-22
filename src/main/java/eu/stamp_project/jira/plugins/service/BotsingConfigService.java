@@ -83,8 +83,8 @@ public class BotsingConfigService {
 	@Path("config/server/edit")
 	@Produces(MediaType.TEXT_HTML)
 	public Response editBotsingServerConfig(@FormParam("base_url") @DefaultValue("") String baseUrl,
-			@FormParam("user") @DefaultValue("") String user,
-			@FormParam("password") @DefaultValue("") String password) {
+			@FormParam("user") String user, @FormParam("password") String password,
+			@FormParam("proxy_host") String proxyHost, @FormParam("proxy_port") String proxyPort) {
 
 		// check admin authorization
         final Response response = checkAdminPermissions(ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser());
@@ -92,7 +92,7 @@ public class BotsingConfigService {
             return response;
         }
 
-		final BotsingServerConfig newBotsingServerConfig = new BotsingServerConfig(baseUrl, user, password);
+		final BotsingServerConfig newBotsingServerConfig = new BotsingServerConfig(baseUrl, user, password, proxyHost, proxyPort);
 		addBotsingServerConfig(newBotsingServerConfig);
 
 		log.info("Added new Botsing server configuration");

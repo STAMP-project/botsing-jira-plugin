@@ -5,6 +5,7 @@
         <vendor name="${project.organization.name}" url="${project.organization.url}" />
         <param name="plugin-icon">images/STAMP_Logo_RGB_box_16x16.png</param>
         <param name="plugin-logo">images/STAMP_Logo_RGB_box_72x72.png</param>
+        <param name="configure.url">/secure/BotsingConfigAction.jspa</param>
     </plugin-info>
 
     <!-- i18n resource -->
@@ -13,6 +14,9 @@
     <!-- static web resources -->
     <web-resource key="botsing-jira-resources" name="botsing-jira Web Resources">
         <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <transformation extension="js">
+            <transformer key="jsI18n"/>
+        </transformation>
         
         <resource type="download" name="botsing-jira.css" location="/css/botsing-jira.css"/>
         <resource type="download" name="botsing-jira.js" location="/js/botsing-jira.js"/>

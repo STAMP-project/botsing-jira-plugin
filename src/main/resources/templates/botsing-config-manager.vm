@@ -43,24 +43,24 @@ $webResourceManager.requireResource("eu.stamp_project.botsing-jira-plugin:botsin
                 <td>
                     <ul>
                     <div data-val="$botsingProjectConfig.getGroupId()" data-name="group_id">
-                    	#if($botsingProjectConfig.getGroupId())<li>$i18n.getText('botsing.config.group_id.label'): $botsingProjectConfig.getGroupId()</li>#end
+                    	#if($botsingProjectConfig.getGroupId())<li><i>$i18n.getText('botsing.config.group_id.label')</i>: <b>$botsingProjectConfig.getGroupId()</b></li>#end
                     </div><div data-val="$botsingProjectConfig.getArtifactId()" data-name="artifact_id">
-                    	#if($botsingProjectConfig.getArtifactId())<li>$i18n.getText('botsing.config.artifact_id.label'): $botsingProjectConfig.getArtifactId()</li>#end
+                    	#if($botsingProjectConfig.getArtifactId())<li><i>$i18n.getText('botsing.config.artifact_id.label')</i>: <b>$botsingProjectConfig.getArtifactId()</b></li>#end
                     </div><div data-val="$botsingProjectConfig.getVersion()" data-name="version">
-                    	#if($botsingProjectConfig.getVersion())<li>$i18n.getText('botsing.config.version.label'): $botsingProjectConfig.getVersion()</li>#end
+                    	#if($botsingProjectConfig.getVersion())<li><i>$i18n.getText('botsing.config.version.label')</i>: <b>$botsingProjectConfig.getVersion()</b></li>#end
                     </div>
                     </ul>
                 </td>
                 <td>
                     <ul>
                     <div data-val="$botsingProjectConfig.getSearchBudget()" data-name="search_budget">
-                		#if($botsingProjectConfig.getSearchBudget())<li>$i18n.getText('botsing.config.search_budget.label'): $botsingProjectConfig.getSearchBudget()</li>#end
+                		#if($botsingProjectConfig.getSearchBudget())<li><i>$i18n.getText('botsing.config.search_budget.label')</i>: <b>$botsingProjectConfig.getSearchBudget()</b></li>#end
 					</div><div data-val="$botsingProjectConfig.getGlobalTimeout()" data-name="global_timeout">
-						#if($botsingProjectConfig.getGlobalTimeout())<li>$i18n.getText('botsing.config.global_timeout.label'): $botsingProjectConfig.getGlobalTimeout()</li>#end
+						#if($botsingProjectConfig.getGlobalTimeout())<li><i>$i18n.getText('botsing.config.global_timeout.label')</i>: <b>$botsingProjectConfig.getGlobalTimeout()</b></li>#end
 					</div><div data-val="$botsingProjectConfig.getPopulation()" data-name="population">
-						#if($botsingProjectConfig.getPopulation())<li>$i18n.getText('botsing.config.population.label'): $botsingProjectConfig.getPopulation()</li>#end
+						#if($botsingProjectConfig.getPopulation())<li><i>$i18n.getText('botsing.config.population.label')</i>: <b>$botsingProjectConfig.getPopulation()</b></li>#end
 					</div><div data-val="$botsingProjectConfig.getPackageFilter()" data-name="package_filter">
-						#if($botsingProjectConfig.getPackageFilter())<li>$i18n.getText('botsing.config.package_filter.label'): $botsingProjectConfig.getPackageFilter()</li>#end
+						#if($botsingProjectConfig.getPackageFilter())<li><i>$i18n.getText('botsing.config.package_filter.label')</i>: <b>$botsingProjectConfig.getPackageFilter()</b></li>#end
 					</div>
 					</ul>
 				</td>
@@ -132,6 +132,14 @@ $webResourceManager.requireResource("eu.stamp_project.botsing-jira-plugin:botsin
  			<div class="field-group">
                 <label>$i18n.getText("botsing.config.server_password.label")</label>
                 <input type="text" name="password" class="text form-data" value="$serverConfig.getPassword()"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("botsing.config.server_proxy_host.label")</label>
+                <input type="text" name="proxy_host" class="text form-data" value="$serverConfig.getProxyHost()"/>
+            </div>
+ 			<div class="field-group">
+                <label>$i18n.getText("botsing.config.server_proxy_port.label")</label>
+                <input type="text" name="proxy_port" class="text form-data" value="$serverConfig.getProxyPort()"/>
             </div>
         </form>
     </div>

@@ -17,8 +17,6 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.client.urlconnection.HttpURLConnectionFactory;
 import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
-import eu.stamp_project.jira.plugins.config.BotsingIssueConfig;
-
 /**
  * Class to call the Botsing server.
  * @author luca
@@ -94,12 +92,12 @@ public class BotsingClient {
 	 * @param issueConfig
 	 * @return
 	 */
-	public String postBotsingIssueEventCall(BotsingIssueConfig issueConfig) {
+	public String postBotsingIssueEventCall(Object jsonObject) {
 		WebResource webResource = client.resource(baseUrl + BOTSING_SERVER_JIRA_URL);
 
 		ClientResponse response = webResource.type(MediaType.APPLICATION_JSON_TYPE)
 				.header(JIRA_EVENT_HEADER_PARAM, JIRA_NEW_BOTSING_ISSUE_EVENT)
-				.post(ClientResponse.class, gson.toJson(issueConfig));
+				.post(ClientResponse.class, gson.toJson(jsonObject));
 
 		if (response.getStatus() != 200) {
 			throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
