@@ -280,6 +280,9 @@ public class BotsingConfigService {
 		// test file
 		// interface test file
 
+		// TODO remove before release
+		log.error(">>> Received reproduction test for " + issueKey + " <<<");
+
 		// check issueKey
 		if (issueKey.isEmpty()) {
             return Response.ok(i18n.getText("config.error.params.empty")).status(Response.Status.BAD_REQUEST).build();

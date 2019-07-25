@@ -99,7 +99,7 @@ public class BotsingClient {
 				.header(JIRA_EVENT_HEADER_PARAM, JIRA_NEW_BOTSING_ISSUE_EVENT)
 				.post(ClientResponse.class, gson.toJson(jsonObject));
 
-		if (response.getStatus() != 200) {
+		if (response.getStatus() != 200 && response.getStatus() != 202) {
 			throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
 		}
 

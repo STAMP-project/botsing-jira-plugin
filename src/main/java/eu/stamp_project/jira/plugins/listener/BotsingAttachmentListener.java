@@ -116,15 +116,18 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 				if (botsingProjectConfig != null && botsingProjectConfig.getEnabled()) {
 					BotsingIssueConfig issueConfig = new BotsingIssueConfig(botsingProjectConfig, issue.getKey(), attachment);
 
-					String callbackURL = ComponentAccessor.getApplicationProperties().getString(APKeys.JIRA_BASEURL)+"/rest/botsing-config/1.0/reproduction/ABC-123/add";
+					String callbackURL = ComponentAccessor.getApplicationProperties().getString(APKeys.JIRA_BASEURL)+"/rest/botsing-config/1.0/reproduction/"+issue.getKey()+"/add";
 					BotsingConfig config = new BotsingConfig(botsingProjectConfig, issueConfig, callbackURL);
 
 					// add label to exclude new calls while it is working
 					labelManager.addLabel(issueEvent.getUser(), issue.getId(), LABEL_REPRODUCTION_DOING, false);
 
-					// call Botsting-server service
+					// call Botsing-server service
 					BotsingClient botsingClient = new BotsingClient(getBotsingServerConfig().getBaseUrl());
 					botsingClient.postBotsingIssueEventCall(config);
+
+					// add comment
+					ComponentAccessor.getCommentManager().create(issue, issueEvent.getUser(), "Sent request to Botsing server", false);
 
 				} else {
 					log.warn("Received Botsing event, but no configuration found for project '"+issue.getProjectObject().getKey()+"' in botsing-jira-plugin.");
