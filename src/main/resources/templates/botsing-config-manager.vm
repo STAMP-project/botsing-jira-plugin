@@ -35,9 +35,9 @@ $webResourceManager.requireResource("eu.stamp_project.botsing-jira-plugin:botsin
                 <td data-val="$botsingProjectConfig.getProjectKey()" data-name="project_key">
                     $botsingProjectConfig.getProjectKey()<br/><br/>
 				 	#if($botsingProjectConfig.getEnabled())
-						<span class="aui-lozenge aui-lozenge-success">$i18n.getText('jigit.settings.table.columns.enabled')</span> 
+						<span class="aui-lozenge aui-lozenge-success">$i18n.getText('botsing.config.table.columns.enabled')</span> 
 					#else
-						<span class="aui-lozenge">$i18n.getText('jigit.settings.table.columns.disabled')</span>
+						<span class="aui-lozenge">$i18n.getText('botsing.config.table.columns.disabled')</span>
 					#end
 				</td>
                 <td>

@@ -1,8 +1,12 @@
 package eu.stamp_project.jira.plugins.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,20 +24,26 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.atlassian.jira.component.ComponentAccessor;
 import com.atlassian.jira.issue.MutableIssue;
+import com.atlassian.jira.issue.attachment.CreateAttachmentParamsBean;
 import com.atlassian.jira.issue.label.LabelManager;
 import com.atlassian.jira.permission.GlobalPermissionKey;
 import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.util.I18nHelper;
+import com.atlassian.jira.web.util.AttachmentException;
 import com.atlassian.plugin.spring.scanner.annotation.component.Scanned;
 import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
+import com.atlassian.plugin.spring.scanner.annotation.imports.JiraImport;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
 import eu.stamp_project.jira.plugins.config.BotsingProjectConfig;
@@ -49,35 +59,37 @@ public class BotsingConfigService {
 	@ComponentImport
 	PluginSettingsFactory pluginSettingsFactory;
 
-//	@JiraImport
-//	private final LabelManager labelManager;
+	@JiraImport
+	private final LabelManager labelManager;
 
     @Context
     private HttpServletRequest request;
 
 	private final I18nHelper i18n;
 
+	private static final String BOTSING_TEST_BODY = "botsingTestBody";
+	private static final String BOTSING_SCAFFOLDING_TEST_BODY = "botsingScaffoldingTestBody";
+	private static final String SUFFIX_JAVA = ".java";
+
 	@Inject
 	public BotsingConfigService(PluginSettingsFactory pluginSettingsFactory, final LabelManager labelManager) {
 
 		this.pluginSettingsFactory = pluginSettingsFactory;
-//		this.labelManager = labelManager;
+		this.labelManager = labelManager;
 		pluginSettings = this.pluginSettingsFactory.createSettingsForKey(BotsingConfigService.class.getName());
         this.i18n = ComponentAccessor.getJiraAuthenticationContext().getI18nHelper();
 	}
 
-
     @GET
     @Path("config/hello")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response getMessage(@QueryParam("key") String key)
-    {
-    	// TODO: classe per testare se i servizi sono raggiungibili
-        if(key!=null)
-            return Response.ok(new BotsingProjectConfig("PRJ", "artifactId")).build();
-        else
-            return Response.ok(new BotsingProjectConfig("PRJ2", "artifactId222")).build();
-    }
+    @Produces(MediaType.TEXT_HTML)
+	public Response getMessage(@QueryParam("key") String key) {
+		// TODO: classe per testare se i servizi sono raggiungibili
+		if (key != null)
+			return Response.ok(new BotsingProjectConfig("PRJ", "artifactId")).build();
+		else
+			return Response.ok(new BotsingProjectConfig("PRJ2", "artifactId222")).build();
+	}
 
 	@POST
 	@Path("config/server/edit")
@@ -269,19 +281,13 @@ public class BotsingConfigService {
      * Service to add Botsing reproduction test to the issue
      * @param issueKey
      * @return
+     * @throws IOException
+     * @throws AttachmentException
      */
 	@POST
     @Path("reproduction/{issue:.+}/add")
     @Produces(MediaType.TEXT_HTML)
-    public Response createAttachment(@PathParam("issue") @DefaultValue("") String issueKey) {
-
-		// parameters to get from the request:
-		// issuekey
-		// test file
-		// interface test file
-
-		// TODO remove before release
-		log.error(">>> Received reproduction test for " + issueKey + " <<<");
+    public Response createAttachment(@PathParam("issue") @DefaultValue("") String issueKey, String body) throws IOException, AttachmentException {
 
 		// check issueKey
 		if (issueKey.isEmpty()) {
@@ -300,24 +306,23 @@ public class BotsingConfigService {
             return Response.ok(i18n.getText("botsing.error.params.invalid")).status(Response.Status.BAD_REQUEST).build();
         }
 
-        // get user to create comment and attachments
+        // TODO make this user configurable in general configuration of botsing-jira-plugin
         ApplicationUser user = ComponentAccessor.getUserManager().getUserByKey("stamp");
 
 		// create comment
-        // TODO i18n for this comment
-        ComponentAccessor.getCommentManager().create(issue, user, "Reproduction test had been generated", true);
+        ComponentAccessor.getCommentManager().create(issue, user, i18n.getText("botsing.comment.success"), true);
+
+        // get request json body
+        JsonObject jsonObject = new JsonParser().parse(body).getAsJsonObject();
 
 		// add test as attachments
-        //CreateAttachmentParamsBean capb = new CreateAttachmentParamsBean(file, filename, contentType, author, issue, zip, thumbnailable, attachmentProperties, createdTime, copySourceFile);
-        //ComponentAccessor.getAttachmentManager().createAttachment(createAttachmentParamsBean)Attachment(file, filename, contentType, author, issue);
+        addAttachment(BOTSING_TEST_BODY, jsonObject, user, issue);
+        addAttachment(BOTSING_SCAFFOLDING_TEST_BODY, jsonObject, user, issue);
 
         // add done label
-        // TODO make user configurable!
-
-//        labelManager.setLabels(user, issue.getId(), JiraUtil.getDoneLabelSet(labelManager.getLabels(issue.getId())), false, true);
+        labelManager.setLabels(user, issue.getId(), JiraUtil.getDoneLabelSet(labelManager.getLabels(issue.getId())), false, true);
 
 		return Response.ok().build();
-
 	}
 
     private static Response getReferrerResponse(HttpServletRequest request) {
@@ -327,6 +332,38 @@ public class BotsingConfigService {
             return Response.ok(e.getMessage()).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+	private void addAttachment(String elementName, JsonObject jsonObject, ApplicationUser user, MutableIssue issue)
+			throws IOException, AttachmentException {
+		try {
+			File testFile = fromJsonEncodedParameterToTestFile(elementName, jsonObject);
+
+			CreateAttachmentParamsBean bean = new CreateAttachmentParamsBean.Builder(testFile,
+					elementName + SUFFIX_JAVA, "text/plain", user, issue).build();
+			ComponentAccessor.getAttachmentManager().createAttachment(bean);
+
+			testFile.delete();
+
+		} catch (AttachmentException e) {
+			throw new AttachmentException("Cannot add attachemnt " + elementName + " to issue " + issue.getKey()
+					+ " by " + user.getUsername(), e);
+		}
+	}
+
+	private File fromJsonEncodedParameterToTestFile(String elementName, JsonObject jsonObject) throws IOException {
+		try {
+			String testBodyBase64 = jsonObject.get(elementName).getAsString();
+			String testBody = new String(Base64.getDecoder().decode(testBodyBase64));
+			File tmpFile = File.createTempFile(elementName, SUFFIX_JAVA);
+			tmpFile.deleteOnExit();
+
+			FileUtils.writeStringToFile(tmpFile, testBody, Charset.defaultCharset().displayName());
+			return tmpFile;
+
+		} catch (IOException e) {
+			throw new IOException("Cannot write test class in tmp folder", e);
+		}
+	}
 
     // TODO these methods should go in a separate component. Cannot do it due to atlassian spring scanner errors
 

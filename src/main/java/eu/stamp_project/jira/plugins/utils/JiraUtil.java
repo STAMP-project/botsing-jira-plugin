@@ -40,7 +40,7 @@ public class JiraUtil {
 		}
 
 		// add Done label
-		newLabelSet.add(BotsingAttachmentListener.LABEL_REPRODUCTION_DOING);
+		newLabelSet.add(BotsingAttachmentListener.LABEL_REPRODUCTION_DONE);
 
 		return newLabelSet;
 	}
