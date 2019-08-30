@@ -47,6 +47,7 @@ public class BotsingAttachmentListener implements InitializingBean, DisposableBe
 	public static final String LABEL_STAMP = "STAMP";
 	public static final String LABEL_REPRODUCTION_DOING = "doing-reproduction";
 	public static final String LABEL_REPRODUCTION_DONE = "reproduction-done";
+	public static final String LABEL_REPRODUCTION_FAILED = "reproduction-failed";
 
 	@JiraImport
 	private final EventPublisher eventPublisher;

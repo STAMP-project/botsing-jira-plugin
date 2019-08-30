@@ -44,6 +44,22 @@ public class JiraUtil {
 
 		return newLabelSet;
 	}
+	
+	public static Set<String> getFailedLabelSet(Set<Label> labels) {
+		Set<String> newLabelSet = new HashSet<String>();
+
+		// recreate label set without Doing label
+		for (Label l : labels) {
+			if (!l.getLabel().equals(BotsingAttachmentListener.LABEL_REPRODUCTION_DOING)) {
+				newLabelSet.add(l.getLabel());
+			}
+		}
+
+		// add Done label
+		newLabelSet.add(BotsingAttachmentListener.LABEL_REPRODUCTION_FAILED);
+
+		return newLabelSet;
+	}
 
 	public static String readFile(String path, Charset encoding) throws IOException {
 		byte[] encoded = Files.readAllBytes(Paths.get(path));

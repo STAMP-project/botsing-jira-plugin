@@ -69,7 +69,9 @@ public class BotsingConfigService {
 
 	private static final String BOTSING_TEST_BODY = "botsingTestBody";
 	private static final String BOTSING_SCAFFOLDING_TEST_BODY = "botsingScaffoldingTestBody";
+	private static final String BOTSING_STACKTRACE = "stackTrace";
 	private static final String SUFFIX_JAVA = ".java";
+	private static final String SUFFIX_LOG = ".log";
 
 	@Inject
 	public BotsingConfigService(PluginSettingsFactory pluginSettingsFactory, final LabelManager labelManager) {
@@ -309,18 +311,33 @@ public class BotsingConfigService {
         // TODO make this user configurable in general configuration of botsing-jira-plugin
         ApplicationUser user = ComponentAccessor.getUserManager().getUserByKey("stamp");
 
-		// create comment
-        ComponentAccessor.getCommentManager().create(issue, user, i18n.getText("botsing.comment.success"), true);
-
         // get request json body
         JsonObject jsonObject = new JsonParser().parse(body).getAsJsonObject();
 
-		// add test as attachments
-        addAttachment(BOTSING_TEST_BODY, jsonObject, user, issue);
-        addAttachment(BOTSING_SCAFFOLDING_TEST_BODY, jsonObject, user, issue);
+        if (isBotsingSuccessExecution(jsonObject)) {
+			
+        	// create comment
+	        ComponentAccessor.getCommentManager().create(issue, user, i18n.getText("botsing.comment.success"), true);
+	
+			// add test as attachments
+	        addAttachment(BOTSING_TEST_BODY, SUFFIX_JAVA, jsonObject, user, issue);
+	        addAttachment(BOTSING_SCAFFOLDING_TEST_BODY, SUFFIX_JAVA, jsonObject, user, issue);
+	        
+	        // add done label
+	        labelManager.setLabels(user, issue.getId(), JiraUtil.getDoneLabelSet(labelManager.getLabels(issue.getId())), false, true);
+	        
+        } else {
+        	
+        	// create comment
+	        ComponentAccessor.getCommentManager().create(issue, user, getErrorMessage(jsonObject), true);
+	        
+	        // add stacktrace as attachments
+	        addAttachment(BOTSING_STACKTRACE, SUFFIX_LOG, jsonObject, user, issue);
+	        
+	        // add done label
+	        labelManager.setLabels(user, issue.getId(), JiraUtil.getFailedLabelSet(labelManager.getLabels(issue.getId())), false, true);
+        }
 
-        // add done label
-        labelManager.setLabels(user, issue.getId(), JiraUtil.getDoneLabelSet(labelManager.getLabels(issue.getId())), false, true);
 
 		return Response.ok().build();
 	}
@@ -333,13 +350,13 @@ public class BotsingConfigService {
         }
     }
 
-	private void addAttachment(String elementName, JsonObject jsonObject, ApplicationUser user, MutableIssue issue)
+	private void addAttachment(String elementName, String fileSuffix, JsonObject jsonObject, ApplicationUser user, MutableIssue issue)
 			throws IOException, AttachmentException {
 		try {
-			File testFile = fromJsonEncodedParameterToTestFile(elementName, jsonObject);
+			File testFile = fromJsonEncodedParameterToTestFile(elementName, fileSuffix, jsonObject);
 
 			CreateAttachmentParamsBean bean = new CreateAttachmentParamsBean.Builder(testFile,
-					elementName + SUFFIX_JAVA, "text/plain", user, issue).build();
+					elementName + fileSuffix, "text/plain", user, issue).build();
 			ComponentAccessor.getAttachmentManager().createAttachment(bean);
 
 			testFile.delete();
@@ -350,11 +367,11 @@ public class BotsingConfigService {
 		}
 	}
 
-	private File fromJsonEncodedParameterToTestFile(String elementName, JsonObject jsonObject) throws IOException {
+	private File fromJsonEncodedParameterToTestFile(String elementName, String fileSuffix, JsonObject jsonObject) throws IOException {
 		try {
 			String testBodyBase64 = jsonObject.get(elementName).getAsString();
 			String testBody = new String(Base64.getDecoder().decode(testBodyBase64));
-			File tmpFile = File.createTempFile(elementName, SUFFIX_JAVA);
+			File tmpFile = File.createTempFile(elementName, fileSuffix);
 			tmpFile.deleteOnExit();
 
 			FileUtils.writeStringToFile(tmpFile, testBody, Charset.defaultCharset().displayName());
@@ -363,6 +380,24 @@ public class BotsingConfigService {
 		} catch (IOException e) {
 			throw new IOException("Cannot write test class in tmp folder", e);
 		}
+	}
+	
+	private boolean isBotsingSuccessExecution(JsonObject jsonObject) {
+		
+		if (jsonObject.get("errorMessage") == null) {
+			return true;
+			
+		} else {
+			return false;
+		}
+	}
+	
+	private String getErrorMessage(JsonObject jsonObject) {
+		return jsonObject.get("errorMessage").getAsString();
+	}
+	
+	private String getErrorStackTrace(JsonObject jsonObject) {
+		return jsonObject.get("stackTrace").getAsString();
 	}
 
     // TODO these methods should go in a separate component. Cannot do it due to atlassian spring scanner errors
