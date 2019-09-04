@@ -2,11 +2,15 @@
 
 This plugin analyze issues that have stacktrace as attachments and the label 'STAMP' and run Botsing to generate a test to replicate the stacktrace.
 
+The execution of Botsing will be done in an instance of [Botsing server](https://github.com/STAMP-project/botsing-server) and the test generated will be added as attachments in the issue itself. 
+
+A comment will be added at the start and at the end of this process in the issue. 
+
 ## Prerequisites
 
 This plugin has been developed for Jira 7.13.0.
 
-This plugin connects to a [Botsing server](https://github.com/STAMP-project/botsing-github-app) that can be configured in the botsing-jira-plugin configuration page.
+This plugin connects to a [Botsing server](https://github.com/STAMP-project/botsing-server) that can be configured in the botsing-jira-plugin configuration page.
 
 ### Plugin configuration
 
@@ -14,7 +18,7 @@ The plugin can be configured accessing the "Botsing plugin configuration" in the
 
 In this page you can add a Botsing project specific configuration, such as:
 
-* Project key
+* Jira Project key
 * Group id
 * Artifact id
 * Version
@@ -23,11 +27,11 @@ In this page you can add a Botsing project specific configuration, such as:
 * Population
 * Package filter
 
-Also with the button 'Edit server' it is possible to configure Botsing server endpoint. 
+With the button 'Edit server' it is possible to configure Botsing server endpoint. 
 
 ### Jira Configuration
 
-There is non other configuration to do in Jira, the issues that will trigger Botsing are only the ones with an attachment and the label 'STAMP'.
+There is non other configuration to do in Jira, the issues that will trigger Botsing are only the ones with one attachment and the label 'STAMP'.
 
 ## Compile and package
 
